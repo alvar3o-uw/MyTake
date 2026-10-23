@@ -1,0 +1,14 @@
+:root {
+  color-scheme: dark;
+  --background: #181a1b;
+  --surface: #242728;
+  --foreground: #f3eee4;
+  --muted: #aaa99f;
+  --border: #363938;
+  --accent: #f18c73;
+}
+* { box-sizing: border-box; padding: 0; margin: 0; }
+body { min-height: 100vh; color: var(--foreground); background: var(--background); font-family: Arial, Helvetica, sans-serif; -webkit-font-smoothing: antialiased; }
+button { font-family: inherit; }
+button:disabled { opacity: 1; cursor: default; }
+::selection { background: #8e493b; color: #fff; }

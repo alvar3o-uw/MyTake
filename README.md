@@ -25,21 +25,32 @@ For example, I should be able to rate a series **8.7 through season 2, episode 5
 
 Folders are outside the MVP. The exact rating range, precision limits, and category behaviour still need to be settled.
 
-## Planned stack
+## Tech stack
 
-The current plan is a website built with:
+The website is being built with TypeScript, React, Next.js, and CSS Modules. The backend and deployment services below are planned and have not been connected yet.
 
-| Technology | Purpose |
-| --- | --- |
-| TypeScript | Application logic and type checking |
-| React and Next.js | Interactive screens and server-side request handling in one project |
-| CSS Modules | Styling with ordinary CSS scoped to components |
-| PostgreSQL through Supabase | Persistent storage for library entries, ratings, and viewing progress |
-| Supabase Auth | User accounts and sign-in |
-| TMDB API | Movie and television metadata, subject to checking anime coverage |
-| Vercel | Website deployment |
+| Technology | Purpose | Status |
+| --- | --- | --- |
+| TypeScript | Type checking and future application logic | Set up |
+| React and Next.js | Page components and the foundation for server-side request handling | Set up |
+| CSS Modules | Component styles, alongside shared global CSS | In use |
+| ESLint | Automated code checks | In use |
+| Git and GitHub | Version control and project history | In use |
+| OpenAI Codex | Development assistance within a structured learning workflow | In use |
+| PostgreSQL through Supabase | Persistent storage for library entries, ratings, and viewing progress | Planned |
+| Supabase Auth | User accounts and sign-in | Planned |
+| TMDB API | Movie and television metadata, subject to checking anime coverage | Planned |
+| Vercel | Website deployment | Planned |
 
 A good-looking, comfortable interface matters to me alongside the functionality. I want MyTake to feel like a place I enjoy returning to, rather than just a form for entering scores.
+
+## How I'm learning with Codex
+
+I'm using Codex as a teacher and development assistant, guided by a set of project instructions and continuity notes I developed around how I want to learn. The aim is to build software I understand, rather than simply receive a finished application.
+
+For new concepts and meaningful features, the workflow is to explain the purpose, trace how information moves through the system, compare tradeoffs, and work through one small piece at a time. It leaves room for me to write code, explain a choice, or investigate a problem, with feedback on my attempt. For bounded tasks such as styling changes or routine edits, Codex can implement the changes and explain what changed and how it was checked.
+
+I own the goals and consequential design decisions. Codex is expected to challenge weak assumptions, distinguish recommendations from agreed choices, and record decisions, checks, and learning checkpoints so later sessions can pick up where we left off. I review changes before committing and publishing them. AI assistance is part of the process; generated code by itself isn't evidence that I've learned the underlying concept.
 
 ## Beyond the MVP
 
@@ -49,4 +60,26 @@ Manga, novels, and ways to share ratings with other people may come later. For n
 
 ## Current status
 
-Planning stage. This README is the starting point; the application has not been implemented or deployed yet.
+The first homepage is implemented as a static visual foundation. It has a single dark theme, coral accents, rounded cards and controls, and small icons. The layout includes a personal library, media-type filters, sorting, viewing progress, and an Add Media control.
+
+All entries, ratings, and viewing progress are illustrative. Controls are disabled: searching, filtering, adding media, saving ratings, and signing in are not implemented yet. The covers are CSS-based placeholders, not artwork fetched from a media service.
+
+The page runs locally. Linting and the production build have passed, and the desktop layout has been visually reviewed. Responsive styles are included, but mobile visual review is still outstanding. The app has not been deployed.
+
+## Run locally
+
+From the project folder, with a compatible Node.js version installed:
+
+```sh
+npm install
+npm run dev
+```
+
+Open [localhost:3000](http://localhost:3000). Edit `app/page.tsx` for homepage content, `app/page.module.css` for its styles, and `app/globals.css` for shared styles and theme colours.
+
+```sh
+npm run lint
+npm run build
+```
+
+These check code quality and whether a production build succeeds; they don't establish that future application features work.
