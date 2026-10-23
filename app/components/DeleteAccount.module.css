@@ -1,0 +1,16 @@
+.section { margin-top: 32px; padding-top: 26px; border-top: 1px solid #ffffff12; }
+.section h2 { font-size: 15px; font-weight: 650; }
+.section p { margin-top: 9px; color: var(--muted); font-size: 12px; line-height: 1.7; }
+.section button { border: 1px solid #62655f; border-radius: 999px; padding: 12px 18px; background: transparent; color: var(--foreground); font-size: 12px; font-weight: 650; cursor: pointer; }
+.section > button { margin-top: 18px; }
+.section button.danger { color: #ffad9c; border-color: #ffad9c50; background: #ffad9c08; }
+.section button:hover { background: #ffffff0a; }
+.section button:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.section button:disabled { cursor: wait; opacity: .6; }
+.dialog { margin: auto; width: min(460px, calc(100% - 32px)); padding: 30px; border: 1px solid #454846; border-radius: 24px; color: var(--foreground); background: var(--surface); box-shadow: 0 24px 90px #0008; }
+.dialog::backdrop { background: #0009; backdrop-filter: blur(4px); }
+.dialog h2 { font-size: 25px; letter-spacing: -.7px; }
+.dialog p { font-size: 14px; margin-top: 15px; }
+.actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; margin-top: 26px; }
+.dialog .error { color: #ffad9c; }
+@media (max-width: 560px) { .dialog { padding: 24px; } .actions { flex-direction: column; } }

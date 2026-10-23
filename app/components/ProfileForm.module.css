@@ -1,0 +1,13 @@
+.form { display: flex; flex-direction: column; gap: 20px; margin-top: 26px; }
+.field { display: flex; flex-direction: column; gap: 10px; }
+.field label { font-size: 13px; font-weight: 600; }
+.inputWrap { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid #565a54; border-radius: 13px; padding: 0 15px; }
+.inputWrap > span { color: var(--muted); font-size: 15px; }
+.inputWrap:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.inputWrap input { width: 100%; min-width: 0; border: 0; outline: 0; padding: 14px 0; color: var(--foreground); background: transparent; font: 14px Arial,sans-serif; }
+.field small { color: var(--muted); font-size: 11px; line-height: 1.6; }
+.form button { border: 1px solid #f99c84; border-radius: 999px; padding: 14px 20px; background: var(--accent); color: #271b17; font-size: 13px; font-weight: 700; box-shadow: 0 3px 0 #9e5142; cursor: pointer; }
+.form button:focus-visible { outline: 2px solid var(--foreground); outline-offset: 4px; }
+.form button:disabled { opacity: .7; cursor: wait; }
+.error, .success { border: 1px solid #f18c7333; background: #f18c730a; color: #ffb5a1; padding: 13px 15px; border-radius: 12px; font-size: 12px; line-height: 1.6; }
+.success { border-color: #adc3a847; color: #d0dfc9; background: #adc3a80b; }

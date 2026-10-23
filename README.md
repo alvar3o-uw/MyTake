@@ -27,7 +27,7 @@ Folders are outside the MVP. Ratings use a 0–10 scale in steps of 0.1. Categor
 
 ## Tech stack
 
-The website is being built with TypeScript, React, Next.js, and CSS Modules. Supabase Auth is connected; library database storage and deployment remain upcoming work.
+The website is being built with TypeScript, React, Next.js, and CSS Modules. Supabase Auth and PostgreSQL profiles are connected; persistent library storage and website deployment remain upcoming work.
 
 | Technology | Purpose | Status |
 | --- | --- | --- |
@@ -37,7 +37,8 @@ The website is being built with TypeScript, React, Next.js, and CSS Modules. Sup
 | ESLint | Automated code checks | In use |
 | Git and GitHub | Version control and project history | In use |
 | OpenAI Codex | Development assistance within a structured learning workflow | In use |
-| PostgreSQL through Supabase | Persistent storage for library entries, ratings, and viewing progress | Planned |
+| PostgreSQL through Supabase | Private profiles with unique usernames; library entries and ratings are next | In use for profiles |
+| Supabase Edge Functions | Protected account deletion using the Auth admin API | In use |
 | Supabase Auth | Email/password accounts, cookie sessions, and protected library access | Connected |
 | TMDB API | Movie and television metadata, subject to checking anime coverage | Planned |
 | Vercel | Website deployment | Planned |
@@ -60,42 +61,63 @@ Manga, novels, and ways to share ratings with other people may come later. For n
 
 ## Current status
 
-MyTake runs locally with a public homepage, account pages, and a protected personal library. The design uses a single dark theme, coral accents, rounded controls, and consistent line icons. The exclamation mark stays in the `mytake!` wordmark; the rest of the interface is kept clean.
+MyTake runs locally with a public homepage, account pages, and a protected personal library. The design uses a single dark theme, coral accents, rounded controls, and consistent line icons. The exclamation mark stays in the `mytake!` wordmark; the rest of the interface is kept clean. Profiles use unique usernames and an initials avatar.
 
 | Page | What works today |
 | --- | --- |
 | `/` | Product introduction, sample collection, and links to Sign In and Sign Up |
 | `/sign-up` | Email/password submission, password confirmation, pending states, and styled confirmation/error messages |
 | `/sign-in` | Email/password submission, pending states, and error messages |
-| `/library` | Server-checked access, an Add Media dialog, session-only cards, an updating title count, and Sign Out |
+| `/profile/setup` | Username selection after signing in for accounts without a profile |
+| `/settings` | Change your username, return to the library after saving, or permanently delete your account after confirmation |
+| `/library` | Server-checked access, an Add Media dialog, session-only cards, rating/alphabetical sorting, an updating title count, and a profile dropdown |
 
 ### Adding media
 
 The library starts with four sample entries. I can add a title and an optional rating through the dialog. Missing titles, out-of-range scores, and ratings that don't follow 0.1 steps produce inline errors. Valid entries appear as new cards. Blank ratings display an Unrated badge; a rating of 0 stays a real score.
 
-The parent library component owns the entries array. The dialog passes a valid entry back through a callback, and React renders the updated collection. Entries are held in memory only: **refreshing the page resets the library**. New cards use a neutral title cover; the sample covers are made with CSS rather than fetched from a catalogue.
+The parent library component owns the entries array. The dialog passes a valid entry back through a callback, and React renders the updated collection. A sorting dropdown defaults to highest rating first, with lowest rating first and alphabetical A–Z options. Unrated entries come first in ascending order and last in descending order.
+
+Entries are held in memory only: **refreshing the page resets the library**. New cards use a neutral title cover; the sample covers are made with CSS rather than fetched from a catalogue.
 
 ### Accounts
 
 Supabase handles email/password authentication. Sign-up checks that passwords match and contain at least eight characters. Confirmation emails return to the app, and the server checks the session before rendering the library. Signed-out visitors are sent to Sign In. Sessions are maintained using cookies, with server-side refresh handling.
 
+Profiles are stored in Supabase PostgreSQL, separately from authentication credentials. Each profile links its account ID to a unique username: 3–20 lowercase letters, numbers, or underscores. Database constraints enforce these rules, and row-level security restricts profile reads and changes to the account owner. No timestamp field is used.
+
+After signing in, accounts without a profile choose a username before entering the library. The initials avatar opens a dropdown with the username, Settings, and Sign Out. Settings saves username changes to the database and returns to My Library with a confirmation that disappears after three seconds. Settings also includes permanent account deletion behind a confirmation dialog. Profile pictures are not uploaded yet.
+
+### Next steps
+
+I want title selection to come from a media catalogue, rather than asking people to enter titles and media types manually. The intended flow is to search, select the correct work using its title, poster, and release year, then enter an optional personal rating.
+
+TMDB is the recommended starting point, but it is not connected yet. Before settling the catalogue choice and categories, I want to check how it represents anime, seasons, specials, and movies. Anime can also be a movie or TV series, so those labels should not be forced into mutually exclusive categories. TMDB's [API FAQ](https://developer.themoviedb.org/docs/faq) describes non-commercial access and the attribution requirements we will need to meet.
+
+The next implementation order is:
+
+1. Check catalogue coverage and build search/selection in Add Media.
+2. Save selected media and personal ratings with per-user database access rules.
+3. Build media detail pages, followed by season and episode ratings.
+
+Catalogue information and personal opinions will have separate responsibilities: the API supplies media information; Supabase stores each user's ratings and progress. The server will determine ownership from the verified account, and database rules will enforce private access. Account deletion must also remove future saved library entries.
+
 ### Still to build
 
-- Persistent library storage with per-user database access rules.
-- Catalogue search and selection, including a check of anime coverage.
-- Working filters, sorting, and entry editing.
+- Working filters and entry editing.
+- Profile picture uploads.
 - Episode, season, and arc ratings, plus tracking unfinished media.
 - Deployment and the later mobile interface.
 
-The existing viewing-progress labels are sample data. Authentication protects the library page, but private database storage has not been implemented yet.
+The existing viewing-progress labels are sample data. Authentication protects the library page, and profiles have private database storage. Library entries still have no database storage.
 
 ### Verification
 
 Linting, TypeScript checking during the production build, and the production build have passed. Browser checks covered adding rated and unrated entries, preserving 0 as a score, validation errors, dialog dismissal/focus, navigation, and refresh resetting entries.
 
-Live authentication checks covered invalid credentials, password mismatch rejection, and signed-out redirects. I also completed sign-up and email confirmation and reached My Library. A separate successful password sign-in and sign-out cycle still needs verification.
+Live authentication checks covered invalid credentials, password mismatch rejection, and signed-out redirects. I completed sign-up and email confirmation, reached My Library, and verified signing out and signing back in. I also verified username setup and the account dropdown, and tested account deletion with a disposable account successfully.
 
-Desktop layouts have been visually reviewed. Responsive styles are included; mobile visual review is still outstanding. The app has not been deployed.
+Desktop layouts have been visually reviewed. Responsive styles are included; mobile visual review is still outstanding. The website has not been deployed; the account-deletion backend function is deployed in Supabase.
 
 ## Run locally
 
@@ -108,7 +130,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Open [localhost:3000](http://localhost:3000). Edit `app/page.tsx` and `app/page.module.css` for the public homepage. The library demo and its styles live in `app/library/`. Shared styles and theme colours are in `app/globals.css`. The library route checks the session on the server and redirects signed-out visitors to Sign In. A Sign Out button is available inside the library.
+Open [localhost:3000](http://localhost:3000). Edit `app/page.tsx` and `app/page.module.css` for the public homepage. The library demo and its styles live in `app/library/`. Shared styles and theme colours are in `app/globals.css`. The library route checks the session on the server and redirects signed-out visitors to Sign In. Sign Out is available in the library’s avatar dropdown.
 
 ```sh
 npm run lint
@@ -119,6 +141,16 @@ Linting checks code quality; the build also checks TypeScript and compiles the a
 
 ## Local authentication setup
 
-The example environment file lists the required settings. Use the Supabase project URL and **publishable key**; a secret or service-role key is not needed. Keep `.env.local` out of Git.
+The example environment file lists the required settings. Use the Supabase project URL and **publishable key**; a secret or service-role key is not needed in the Next.js environment. The deletion Edge Function uses its server-only administrator credential inside Supabase. Keep `.env.local` out of Git.
 
 For local development, set the Supabase Auth Site URL to `http://localhost:3000` and allow `http://localhost:3000/auth/callback` as a redirect URL. Use `localhost` consistently when signing up and opening the confirmation email on the same browser. Deployment will need its own Site URL and redirect configuration.
+
+## Profile database setup
+
+The connected project has the profiles schema applied. For another project, `supabase/profiles.sql` records the table, constraints, grants, and ownership policies. `supabase/tests/profiles.sql` tests uniqueness, format validation, owner access, cross-account isolation, and anonymous denial using temporary fixtures inside a rolled-back transaction. These database checks passed against the connected project.
+
+I verified successful username selection and the authenticated dropdown. The Settings save/redirect flow was checked using the existing username unchanged. A changed-username refresh-persistence walkthrough remains to be checked. Library entries are still session-only even though profiles persist.
+
+Supabase’s security advisor also reports that [leaked-password protection](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection) is disabled; that existing Auth setting was not changed during profile work.
+
+Account deletion uses the deployed `delete-account` Supabase Edge Function. It verifies the caller with Auth and deletes only that account through the admin API; the administrator credential stays in Supabase. Profile data is removed by its cascading foreign key. Future persisted library data must also be linked to the account with deletion cleanup. Source is in `supabase/functions/delete-account/`; deploy with JWT verification enabled. `node --test supabase/tests/delete-account.test.mjs` checks authorization, explicit confirmation, identity binding, and failure responses. The deployed endpoint rejects unauthenticated calls; profile cleanup passed a rolled-back database fixture check. I also completed a successful account-deletion walkthrough with a disposable account. Automatic three-second notice expiry and the deletion dialog visual details have not received a separate agent-run browser check.

@@ -25,7 +25,7 @@ export default function Home() {
           <div className={styles.previewArea}>
             <span className={styles.annotation}>a little shelf. a lot of opinions. <span aria-hidden="true">↴</span></span>
             <section className={styles.preview} aria-label="Sample library preview">
-              <div className={styles.previewHeader}><span className={styles.previewLibrary}><UiIcon name="books" className={styles.booksIcon} />My Library</span><small>3 titles</small><span className={styles.previewDots} aria-hidden="true">•••</span></div>
+              <div className={styles.previewHeader}><span className={styles.previewLibrary}><UiIcon name="books" className={styles.booksIcon} />My Library</span><small>3 Titles</small><span className={styles.previewDots} aria-hidden="true">•••</span></div>
               <div className={styles.previewFilters}><span>All Media</span><span>Movies</span><span>TV Shows</span><span>Anime</span></div>
               <div className={styles.previewGrid}>
                 <article>
