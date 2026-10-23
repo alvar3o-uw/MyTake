@@ -15,30 +15,30 @@ This is also my first side project. I'm starting with little to no full stack de
 The MVP will focus on keeping a private record of my viewing and ratings:
 
 - Track movies, TV shows, and anime in a personal library.
-- Give media precise decimal ratings, such as 9.3, 8.5, etc.
-- Rate individual episodes as well as an overall series.
+- Give media decimal ratings from 0–10 in steps of 0.1, such as 9.3 or 8.8.
+- Rate individual episodes, seasons, and story arcs as well as an overall series.
 - Rate a series before finishing it, with the score representing my opinion through a particular episode.
 - Organize and browse the library using categories.
 - Keep each user's ratings private, with no access to other users' ratings in the MVP.
 
 For example, I should be able to rate a series **8.7 through season 2, episode 5**, then update that opinion as I keep watching. An episode rating and an overall series rating serve different purposes; one shouldn't have to determine the other.
 
-Folders are outside the MVP. The exact rating range, precision limits, and category behaviour still need to be settled.
+Folders are outside the MVP. Ratings use a 0–10 scale in steps of 0.1. Category behaviour still needs to be settled.
 
 ## Tech stack
 
-The website is being built with TypeScript, React, Next.js, and CSS Modules. The backend and deployment services below are planned and have not been connected yet.
+The website is being built with TypeScript, React, Next.js, and CSS Modules. Supabase Auth is connected; library database storage and deployment remain upcoming work.
 
 | Technology | Purpose | Status |
 | --- | --- | --- |
-| TypeScript | Type checking and future application logic | Set up |
-| React and Next.js | Page components and the foundation for server-side request handling | Set up |
+| TypeScript | Typed entries, form logic, and server-side authentication actions | In use |
+| React and Next.js | Pages, shared components, client state, routing, and server actions | In use |
 | CSS Modules | Component styles, alongside shared global CSS | In use |
 | ESLint | Automated code checks | In use |
 | Git and GitHub | Version control and project history | In use |
 | OpenAI Codex | Development assistance within a structured learning workflow | In use |
 | PostgreSQL through Supabase | Persistent storage for library entries, ratings, and viewing progress | Planned |
-| Supabase Auth | User accounts and sign-in | Planned |
+| Supabase Auth | Email/password accounts, cookie sessions, and protected library access | Connected |
 | TMDB API | Movie and television metadata, subject to checking anime coverage | Planned |
 | Vercel | Website deployment | Planned |
 
@@ -60,26 +60,65 @@ Manga, novels, and ways to share ratings with other people may come later. For n
 
 ## Current status
 
-The first homepage is implemented as a static visual foundation. It has a single dark theme, coral accents, rounded cards and controls, and small icons. The layout includes a personal library, media-type filters, sorting, viewing progress, and an Add Media control.
+MyTake runs locally with a public homepage, account pages, and a protected personal library. The design uses a single dark theme, coral accents, rounded controls, and consistent line icons. The exclamation mark stays in the `mytake!` wordmark; the rest of the interface is kept clean.
 
-All entries, ratings, and viewing progress are illustrative. Controls are disabled: searching, filtering, adding media, saving ratings, and signing in are not implemented yet. The covers are CSS-based placeholders, not artwork fetched from a media service.
+| Page | What works today |
+| --- | --- |
+| `/` | Product introduction, sample collection, and links to Sign In and Sign Up |
+| `/sign-up` | Email/password submission, password confirmation, pending states, and styled confirmation/error messages |
+| `/sign-in` | Email/password submission, pending states, and error messages |
+| `/library` | Server-checked access, an Add Media dialog, session-only cards, an updating title count, and Sign Out |
 
-The page runs locally. Linting and the production build have passed, and the desktop layout has been visually reviewed. Responsive styles are included, but mobile visual review is still outstanding. The app has not been deployed.
+### Adding media
+
+The library starts with four sample entries. I can add a title and an optional rating through the dialog. Missing titles, out-of-range scores, and ratings that don't follow 0.1 steps produce inline errors. Valid entries appear as new cards. Blank ratings display an Unrated badge; a rating of 0 stays a real score.
+
+The parent library component owns the entries array. The dialog passes a valid entry back through a callback, and React renders the updated collection. Entries are held in memory only: **refreshing the page resets the library**. New cards use a neutral title cover; the sample covers are made with CSS rather than fetched from a catalogue.
+
+### Accounts
+
+Supabase handles email/password authentication. Sign-up checks that passwords match and contain at least eight characters. Confirmation emails return to the app, and the server checks the session before rendering the library. Signed-out visitors are sent to Sign In. Sessions are maintained using cookies, with server-side refresh handling.
+
+### Still to build
+
+- Persistent library storage with per-user database access rules.
+- Catalogue search and selection, including a check of anime coverage.
+- Working filters, sorting, and entry editing.
+- Episode, season, and arc ratings, plus tracking unfinished media.
+- Deployment and the later mobile interface.
+
+The existing viewing-progress labels are sample data. Authentication protects the library page, but private database storage has not been implemented yet.
+
+### Verification
+
+Linting, TypeScript checking during the production build, and the production build have passed. Browser checks covered adding rated and unrated entries, preserving 0 as a score, validation errors, dialog dismissal/focus, navigation, and refresh resetting entries.
+
+Live authentication checks covered invalid credentials, password mismatch rejection, and signed-out redirects. I also completed sign-up and email confirmation and reached My Library. A separate successful password sign-in and sign-out cycle still needs verification.
+
+Desktop layouts have been visually reviewed. Responsive styles are included; mobile visual review is still outstanding. The app has not been deployed.
 
 ## Run locally
 
-From the project folder, with a compatible Node.js version installed:
+From the project folder, using Node.js 20.9 or newer (development currently uses Node.js 24):
 
 ```sh
 npm install
+cp .env.example .env.local
+# Fill in your Supabase project URL and publishable key, then:
 npm run dev
 ```
 
-Open [localhost:3000](http://localhost:3000). Edit `app/page.tsx` for homepage content, `app/page.module.css` for its styles, and `app/globals.css` for shared styles and theme colours.
+Open [localhost:3000](http://localhost:3000). Edit `app/page.tsx` and `app/page.module.css` for the public homepage. The library demo and its styles live in `app/library/`. Shared styles and theme colours are in `app/globals.css`. The library route checks the session on the server and redirects signed-out visitors to Sign In. A Sign Out button is available inside the library.
 
 ```sh
 npm run lint
 npm run build
 ```
 
-These check code quality and whether a production build succeeds; they don't establish that future application features work.
+Linting checks code quality; the build also checks TypeScript and compiles the application. These are separate from testing behaviour in the browser.
+
+## Local authentication setup
+
+The example environment file lists the required settings. Use the Supabase project URL and **publishable key**; a secret or service-role key is not needed. Keep `.env.local` out of Git.
+
+For local development, set the Supabase Auth Site URL to `http://localhost:3000` and allow `http://localhost:3000/auth/callback` as a redirect URL. Use `localhost` consistently when signing up and opening the confirmation email on the same browser. Deployment will need its own Site URL and redirect configuration.

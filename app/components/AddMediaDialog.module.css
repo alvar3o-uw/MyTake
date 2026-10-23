@@ -1,0 +1,75 @@
+.icon { width: 15px; height: 15px; flex: 0 0 auto; }
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  padding: 12px 18px;
+  color: #201510;
+  background: var(--accent);
+  box-shadow: 0 3px 0 #9e5142;
+  font-weight: 700;
+  cursor: pointer;
+}
+.trigger:hover { background: #ffa087; }
+.trigger:focus-visible, .actions button:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 4px;
+}
+.dialog {
+  margin: auto;
+  width: min(440px, calc(100% - 32px));
+  padding: 32px;
+  border: 1px solid #454846;
+  border-radius: 24px;
+  color: var(--foreground);
+  background: var(--surface);
+  box-shadow: 0 24px 90px #0008;
+}
+.dialog::backdrop { background: #0009; backdrop-filter: blur(4px); }
+.dialog h2 { font-size: 28px; letter-spacing: -1px; margin-top: 0; }
+.dialog p { margin-top: 12px; color: var(--muted); font-size: 14px; line-height: 1.7; }
+.actions { display: flex; justify-content: flex-end; margin-top: 28px; }
+.actions button {
+  border: 1px solid #66695f;
+  border-radius: 999px;
+  padding: 10px 20px;
+  background: transparent;
+  color: var(--foreground);
+  font-weight: 600;
+  cursor: pointer;
+}
+.actions button:hover { background: #ffffff0a; }
+@media(max-width: 560px) {
+  .trigger { padding: 10px 12px; font-size: 11px; }
+  .dialog { padding: 26px; }
+}
+
+.field { display: flex; flex-direction: column; gap: 9px; margin-top: 22px; }
+.field label { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; }
+.field label span { font-size: 11px; font-weight: 400; color: var(--muted); }
+.field input { width: 100%; min-width: 0; border: 1px solid #62655f; border-radius: 12px; padding: 12px 14px; background: var(--background); color: var(--foreground); font: inherit; font-size: 14px; }
+.field input::placeholder { color: #93958d; }
+.field input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.field small { font-size: 11px; line-height: 1.6; color: var(--muted); }
+.dialog .feedback { font-size: 12px; min-height: 40px; margin-top: 22px; }
+.actions { gap: 10px; }
+.actions .primary { background: var(--accent); color: #201510; border-color: var(--accent); }
+.actions .primary:hover { background: #ffa087; }
+
+.ratingControl { position: relative; display: flex; align-items: center; gap: 10px; border: 1px solid #62655f; border-radius: 16px; padding: 7px; background: var(--background); }
+.ratingControl:focus-within { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.ratingControl input:focus-visible { outline: none; }
+.ratingControl input { flex: 1; width: 100%; min-width: 0; border: 0; background: transparent; padding: 6px 0; text-align: center; font-family: Arial, Helvetica, sans-serif; font-size: 24px; font-weight: 700; color: var(--accent); appearance: textfield; -moz-appearance: textfield; }
+.ratingControl input::placeholder { font-size: 14px; font-weight: 400; color: #93958d; opacity: 1; }
+.ratingControl input::-webkit-inner-spin-button, .ratingControl input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.ratingScale { position: absolute; right: 61px; top: 50%; transform: translateY(-50%); color: var(--muted); white-space: nowrap; font-size: 12px; pointer-events: none; }
+.stepButton { flex: 0 0 38px; height: 38px; border: 1px solid #ffffff12; border-radius: 12px; background: var(--surface); color: var(--foreground); font-size: 23px; cursor: pointer; }
+.stepButton:hover { color: var(--accent); background: #f18c7318; }
+.stepButton:active { transform: scale(.95); }
+.stepButton:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.field .error { color: #ffad9c; font-size: 12px; }
+.field input[aria-invalid="true"], .ratingControl.invalid { border-color: #ffad9c; }
