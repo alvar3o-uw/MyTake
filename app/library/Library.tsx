@@ -25,8 +25,10 @@ function Icon({ path }: { path: string }) {
 export default function Library({ username, initialEntries, profileUpdated = false }: { username: string; initialEntries: LibraryEntry[]; profileUpdated?: boolean }) {
   const [entries, setEntries] = useState<LibraryEntry[]>(initialEntries);
   const [order, setOrder] = useState<LibraryOrder>("descending");
+  const [mediaFilter, setMediaFilter] = useState<"all" | "movie" | "tv">("all");
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const sortedEntries = sortLibrary(entries, order);
+  const filteredEntries = entries.filter((entry) => mediaFilter === "all" || entry.mediaType === mediaFilter);
+  const sortedEntries = sortLibrary(filteredEntries, order);
 
   function addEntry(entry: LibraryEntry) {
     setEntries((previousEntries) => [entry, ...previousEntries.filter((previous) => previous.id !== entry.id)]);
@@ -51,15 +53,14 @@ export default function Library({ username, initialEntries, profileUpdated = fal
         {profileUpdated && <ProfileNotice username={username} />}
         <section className={styles.library} aria-labelledby="library-title">
           <div className={styles.sectionHeading}>
-            <div><p className={styles.eyebrow}>YOUR SPACE FOR STORIES</p><h1 ref={headingRef} tabIndex={-1} id="library-title">My Library<span>{entries.length} {entries.length === 1 ? "Title" : "Titles"}</span></h1></div>
+            <div><p className={styles.eyebrow}>YOUR SPACE FOR STORIES</p><h1 ref={headingRef} tabIndex={-1} id="library-title">My Library<span aria-live="polite">{filteredEntries.length} {filteredEntries.length === 1 ? "Title" : "Titles"}</span></h1></div>
             <AddMediaDialog onAdd={addEntry} />
           </div>
           <div className={styles.toolbar}>
             <div className={styles.filters} role="group" aria-label="Media type">
-              <button type="button" disabled className={styles.selected} aria-pressed="true"><Icon path="M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z" />All Media</button>
-              <button type="button" disabled aria-pressed="false"><Icon path="M4 3h16v18H4z M4 8h16 M4 16h16 M8 3v5 M16 3v5 M8 16v5 M16 16v5" />Movies</button>
-              <button type="button" disabled aria-pressed="false"><Icon path="M3 7h18v14H3z M8 3l4 4 4-4 M7 17h6" />TV Shows</button>
-              <button type="button" disabled aria-pressed="false"><UiIcon name="anime" className={styles.icon} />Anime</button>
+              <button type="button" className={mediaFilter === "all" ? styles.selected : undefined} aria-pressed={mediaFilter === "all"} onClick={() => setMediaFilter("all")}><Icon path="M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z" />All Media</button>
+              <button type="button" className={mediaFilter === "movie" ? styles.selected : undefined} aria-pressed={mediaFilter === "movie"} onClick={() => setMediaFilter("movie")}><UiIcon name="movie" className={styles.icon} />Movies</button>
+              <button type="button" className={mediaFilter === "tv" ? styles.selected : undefined} aria-pressed={mediaFilter === "tv"} onClick={() => setMediaFilter("tv")}><UiIcon name="tv" className={styles.icon} />TV Shows</button>
             </div>
             <div className={styles.sortControl}>
               <Icon path="M8 4v16 M4 16l4 4 4-4 M14 5h7 M14 10h5 M16 15h3" />
@@ -71,10 +72,10 @@ export default function Library({ username, initialEntries, profileUpdated = fal
               <svg className={styles.sortChevron} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
             </div>
           </div>
-          {entries.length === 0 && <div className={styles.emptyLibrary}>
+          {filteredEntries.length === 0 && <div className={styles.emptyLibrary}>
             <UiIcon name="books" />
-            <h2>Your next take starts here.</h2>
-            <p>Add a movie or show to start your library.</p>
+            <h2>{entries.length === 0 ? "Your next take starts here." : mediaFilter === "movie" ? "No movies here yet." : "No TV shows here yet."}</h2>
+            <p>{entries.length === 0 ? "Add a movie or show to start your library." : "Choose All Media to see your other titles, or add a new one."}</p>
           </div>}
           <div className={styles.grid}>
             {sortedEntries.map((entry) => (

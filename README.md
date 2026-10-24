@@ -70,7 +70,7 @@ MyTake runs locally with a public homepage, account pages, and a protected perso
 | `/sign-in` | Email/password submission, pending states, and error messages |
 | `/profile/setup` | Username selection after signing in for accounts without a profile |
 | `/settings` | Change your username, return to the library after saving, or permanently delete your account after confirmation |
-| `/library` | Server-checked access, TMDB title search/selection, saved personal cards, rating/alphabetical sorting, an updating title count, and a profile dropdown |
+| `/library` | Server-checked access, TMDB title search/selection, saved personal cards, All Media / Movies / TV Shows filters, rating/alphabetical sorting, an updating title count, and a profile dropdown |
 | `/about` | TMDB credits and required attribution |
 
 ### Adding media
@@ -97,21 +97,20 @@ After signing in, accounts without a profile choose a username before entering t
 
 ### Catalogue direction
 
-I want to select real catalogue entries instead of manually entering titles and media types. TMDB now supplies that search and selection flow, including posters and episode lists. I checked representative anime listings and accepted their organization for now; category behavior remains undecided. Anime can also be a movie or TV series, so those labels should not be forced into mutually exclusive categories. TMDB's [API FAQ](https://developer.themoviedb.org/docs/faq) describes non-commercial access and attribution requirements; the About page includes the required credits.
+I want to select real catalogue entries instead of manually entering titles and media types. TMDB now supplies that search and selection flow, including posters and episode lists. I checked representative anime listings and accepted their organization for now; the library now uses movie/TV filters, while broader category behavior remains undecided. Anime can also be a movie or TV series, so those labels should not be forced into mutually exclusive categories. TMDB's [API FAQ](https://developer.themoviedb.org/docs/faq) describes non-commercial access and attribution requirements; the About page includes the required credits.
 
 Catalogue information and personal opinions have separate responsibilities: TMDB supplies media information, while Supabase stores my ratings and progress. The server determines ownership from the verified account, and database rules enforce private access. Account deletion also removes saved entries and their catalogue snapshots.
 
 ### Still to build
 
 - Media detail pages for opening a title from the library.
-- Working media filters.
 - Profile picture uploads.
 - Individual episode, season, and arc ratings; episode progress is selectable, while these separate ratings are still planned.
 - Deployment and the later mobile interface.
 
 ### Verification
 
-Focused ESLint and TypeScript checks passed for the latest edit/remove changes. The most recent production build passed at the library-persistence checkpoint; a full build and browser walkthrough of the later edit/remove features remain user-run checks. Earlier browser checks covered adding rated and unrated entries, preserving 0 as a score, validation errors, dialog dismissal/focus, navigation, and persistence after a full refresh.
+Focused ESLint and TypeScript checks passed for edit/remove changes, and I subsequently confirmed the production build and edit/remove browser walkthrough. Earlier browser checks covered adding rated and unrated entries, preserving 0 as a score, validation errors, dialog dismissal/focus, navigation, and persistence after a full refresh.
 
 Live authentication checks covered invalid credentials, password mismatch rejection, and signed-out redirects. I completed sign-up and email confirmation, reached My Library, and verified signing out and signing back in. I also verified username setup and the account dropdown, and tested account deletion with a disposable account successfully.
 
@@ -174,3 +173,7 @@ The server re-fetches title and episode details from TMDB before saving, determi
 Library removal grants owner-only deletion of private media snapshots; the linked personal entry is removed by the database cascade in the same operation. The server verifies the login and ownership, confirms the entry is gone, and safely accepts a retry if it was already removed. `supabase/tests/library-removal.sql` checks owner deletion, cleanup, cross-account denial, repeat deletion, and anonymous denial with rolled-back fixtures.
 
 Entry editing uses column-limited UPDATE grants and ownership policies: only ratings, status, and episode progress can be changed; owner and media identity remain fixed. Changed episodes are verified against the saved show on the server, while unchanged saved progress can be retained without another catalogue request. `supabase/tests/library-edit.sql` verifies owner edits, progress changes/clearing, zero/unrated, constraints, immutable identity/ownership, and cross-account/anonymous denial with rolled-back fixtures. Focused lint, TypeScript, and these database tests passed.
+
+Library filters use TMDB’s movie/TV type, so anime films appear in Movies and anime series in TV Shows. All Media shows the full library; there is no separate Anime tab. The displayed title count and empty state follow the active filter, and the selected sorting order applies within it. Adding, editing, and removal continue to respect the active filter. Filters reset to All Media on a full refresh; they do not change stored entries. The latest filter browser walkthrough and full build remain user-run checks.
+
+The public homepage describes movies and TV shows, with no separate anime wording. Its static sample library mirrors the current filters, descending rating order, poster cards, and completion/progress labels. The simplified demo omits per-card action dots and sorting controls, and reuses the real Add Media button styling. Demo posters are stored locally in `public/demo-posters/` and credited to TMDB through About & Credits. Homepage copy describes overall ratings through an episode, without presenting separate episode/season ratings as implemented.

@@ -99,3 +99,8 @@
 
 .entry { position: relative; }
 .sectionHeading h1:focus { outline: none; }
+
+.filters button { cursor: pointer; transition: background .15s, color .15s; }
+.filters button:not(.selected):hover { background: #ffffff08; color: var(--foreground); }
+.filters button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .filters button { transition: none; } }
