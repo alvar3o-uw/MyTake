@@ -1,12 +1,17 @@
 "use client";
 
+import Link from "next/link";
+import { progressLabel } from "@/lib/tmdb/episodes";
+import Image from "next/image";
+import { posterUrl } from "@/lib/tmdb/media";
 import ProfileNotice from "../components/ProfileNotice";
 import UiIcon from "../components/UiIcon";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { sortLibrary, type LibraryOrder } from "@/lib/sort-library";
+import LibraryEntryMenu from "../components/LibraryEntryMenu";
 import AccountMenu from "../components/AccountMenu";
 import AddMediaDialog from "../components/AddMediaDialog";
-import type { LibraryEntry, NewEntry } from "../types";
+import type { LibraryEntry } from "../types";
 import styles from "./page.module.css";
 
 function Icon({ path }: { path: string }) {
@@ -17,21 +22,19 @@ function Icon({ path }: { path: string }) {
   );
 }
 
-const initialEntries: LibraryEntry[] = [
-  { id: "sample-arrival", title: "Arrival", rating: 9.3, cover: "arrival", year: "2016", type: "Movie", status: "Completed" },
-  { id: "sample-bear", title: "The Bear", rating: 8.8, cover: "bear", year: "2022", type: "TV Show", status: "Watching · Through S2 E06" },
-  { id: "sample-spirited", title: "Spirited Away", rating: 9.6, cover: "spirited", year: "2001", type: "Anime Film", status: "Completed" },
-  { id: "sample-severance", title: "Severance", rating: 9.1, cover: "severance", year: "2022", type: "TV Show", status: "Watching · Through S1 E07" },
-];
-
-export default function Library({ username, profileUpdated = false }: { username: string; profileUpdated?: boolean }) {
+export default function Library({ username, initialEntries, profileUpdated = false }: { username: string; initialEntries: LibraryEntry[]; profileUpdated?: boolean }) {
   const [entries, setEntries] = useState<LibraryEntry[]>(initialEntries);
   const [order, setOrder] = useState<LibraryOrder>("descending");
+  const headingRef = useRef<HTMLHeadingElement>(null);
   const sortedEntries = sortLibrary(entries, order);
 
-  function addEntry(entry: NewEntry) {
-    const newEntry: LibraryEntry = { ...entry, id: crypto.randomUUID() };
-    setEntries((previousEntries) => [newEntry, ...previousEntries]);
+  function addEntry(entry: LibraryEntry) {
+    setEntries((previousEntries) => [entry, ...previousEntries.filter((previous) => previous.id !== entry.id)]);
+  }
+
+  function removeEntry(entryId: string) {
+    setEntries((previous) => previous.filter((entry) => entry.id !== entryId));
+    headingRef.current?.focus();
   }
 
   return (
@@ -48,7 +51,7 @@ export default function Library({ username, profileUpdated = false }: { username
         {profileUpdated && <ProfileNotice username={username} />}
         <section className={styles.library} aria-labelledby="library-title">
           <div className={styles.sectionHeading}>
-            <div><p className={styles.eyebrow}>YOUR SPACE FOR STORIES</p><h1 id="library-title">My Library<span>{entries.length} Titles</span></h1></div>
+            <div><p className={styles.eyebrow}>YOUR SPACE FOR STORIES</p><h1 ref={headingRef} tabIndex={-1} id="library-title">My Library<span>{entries.length} {entries.length === 1 ? "Title" : "Titles"}</span></h1></div>
             <AddMediaDialog onAdd={addEntry} />
           </div>
           <div className={styles.toolbar}>
@@ -68,15 +71,18 @@ export default function Library({ username, profileUpdated = false }: { username
               <svg className={styles.sortChevron} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
             </div>
           </div>
+          {entries.length === 0 && <div className={styles.emptyLibrary}>
+            <UiIcon name="books" />
+            <h2>Your next take starts here.</h2>
+            <p>Add a movie or show to start your library.</p>
+          </div>}
           <div className={styles.grid}>
             {sortedEntries.map((entry) => (
               <article className={styles.entry} key={entry.id}>
-                <div className={`${styles.cover} ${entry.cover ? styles[entry.cover] : styles.placeholder}`}>
-                  {entry.cover === "arrival" && <><span className={styles.coverKicker}>A FILM BY DENIS VILLENEUVE</span><div className={styles.orbit} /><span className={styles.coverTitle}>ARRIVAL</span><span className={styles.coverFoot}>WHY ARE THEY HERE?</span></>}
-                  {entry.cover === "bear" && <><span className={styles.coverKicker}>EVERY SECOND COUNTS.</span><span className={styles.bearGraphic}>86</span><span className={styles.coverTitle}>THE<br />BEAR</span><span className={styles.coverFoot}>YES, CHEF.</span></>}
-                  {entry.cover === "spirited" && <><span className={styles.coverKicker}>A HAYAO MIYAZAKI FILM</span><div className={styles.sun} /><span className={styles.japanese} lang="ja">千と千尋</span><span className={styles.coverTitle}>SPIRITED<br />AWAY</span><span className={styles.coverFoot}>A WORLD BEYOND YOUR IMAGINATION</span></>}
-                  {entry.cover === "severance" && <><span className={styles.coverKicker}>WELCOME TO LUMON.</span><div className={styles.corridor} /><span className={styles.coverTitle}>severance</span><span className={styles.coverFoot}>A WORK / LIFE BALANCE.</span></>}
-                  {!entry.cover && <><span className={styles.coverKicker}>MYTAKE</span><span className={styles.placeholderTitle}>{entry.title}</span><span className={styles.coverFoot}>PERSONAL ENTRY</span></>}
+                <LibraryEntryMenu entry={entry} onRemoved={removeEntry} onUpdated={(updated) => setEntries((previous) => previous.map((item) => item.id === updated.id ? updated : item))} />
+                <div className={`${styles.cover} ${styles.placeholder}`}>
+                  {entry.posterPath && <Image src={posterUrl(entry.posterPath, "w500")} alt="" fill sizes="(max-width: 560px) 45vw, 25vw" unoptimized style={{ objectFit: "cover" }} />}
+                  {!entry.posterPath && <><span className={styles.coverKicker}>MYTAKE</span><span className={styles.placeholderTitle}>{entry.title}</span></>}
                 </div>
                 <div className={styles.entryHeading}>
                   <h3>{entry.title}</h3>
@@ -84,16 +90,16 @@ export default function Library({ username, profileUpdated = false }: { username
                     {entry.rating === null ? <><Icon path="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z" /><span>Unrated</span></> : <>{entry.rating}<small>/10</small></>}
                   </span>
                 </div>
-                {entry.year && <p className={styles.meta}>{entry.year} <span>·</span> {entry.type?.toUpperCase()}</p>}
-                {entry.status && <span className={`${styles.status} ${entry.status.startsWith("Watching") ? styles.watching : ""}`}>
-                  <Icon path={entry.status === "Completed" ? "M20 11v1a8 8 0 1 1-4.7-7.3 M8 11l4 4 9-10" : "M8 5l11 7-11 7z"} />{entry.status}
+                {(entry.year || entry.type) && <p className={styles.meta}>{entry.year}{entry.year && entry.type && <span> · </span>}{entry.type?.toUpperCase()}</p>}
+                {entry.status && <span className={`${styles.status} ${entry.status === "In Progress" ? styles.watching : ""}`}>
+                  <Icon path={entry.status === "Completed" ? "M20 11v1a8 8 0 1 1-4.7-7.3 M8 11l4 4 9-10" : "M8 5l11 7-11 7z"} />{progressLabel(entry.status, entry.progress)}
                 </span>}
               </article>
             ))}
           </div>
         </section>
       </main>
-      <footer className={styles.footer}><span>MyTake </span></footer>
+      <footer className={styles.footer}><span>MyTake </span><Link href="/about">About & Credits</Link></footer>
     </div>
   );
 }

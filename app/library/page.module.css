@@ -9,8 +9,8 @@
 .library { padding: 50px 0 70px; }
 .sectionHeading { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
 .eyebrow { font-size: 9px; letter-spacing: 1.8px; color: var(--muted); margin-bottom: 12px; }
-.sectionHeading h1 { font: 800 46px Arial,Helvetica,sans-serif; letter-spacing: -2px; }
-.sectionHeading h1 span { font: 11px Arial,sans-serif; letter-spacing: 0; color: var(--muted); margin-left: 16px; display: inline-block; vertical-align: middle; padding: 7px 11px; background: var(--surface); border-radius: 999px; }
+.sectionHeading h1 { font: 900 46px var(--font-ui); letter-spacing: -1.8px; }
+.sectionHeading h1 span { font: 11px var(--font-ui); letter-spacing: 0; color: var(--muted); margin-left: 16px; display: inline-block; vertical-align: middle; padding: 7px 11px; background: var(--surface); border-radius: 999px; }
 .toolbar { display: flex; justify-content: space-between; gap: 16px; align-items: center; border-bottom: 1px solid var(--border); margin: 30px 0 28px; padding-bottom: 18px; }
 .filters { display: flex; gap: 6px; background: var(--surface); border-radius: 999px; padding: 5px; }
 .filters button { color: var(--muted); border: 0; background: transparent; border-radius: 999px; padding: 9px 15px; font-size: 12px; white-space: nowrap; }
@@ -23,11 +23,11 @@
 .coverTitle { font-family: Georgia, serif; text-align: center; position: relative; z-index: 1; }
 .arrival { background: radial-gradient(ellipse at 50% 95%, #b3b6a4, transparent 60%),linear-gradient(#6e7975,#b1b7a7); color: #f3f2df; }
 .orbit { position: absolute; width: 32%; height: 60%; top: 11%; left: 35%; background: linear-gradient(100deg,#192827,#4e5b54); border-radius: 50%; transform: rotate(13deg); box-shadow: 12px 4px 30px #44564c80; }
-.arrival .coverTitle { margin-top: auto; margin-bottom: 18px; font: 25px Arial,sans-serif; letter-spacing: 8px; }
+.arrival .coverTitle { margin-top: auto; margin-bottom: 18px; font: 25px var(--font-ui); letter-spacing: 8px; }
 .bear { background: #233d60; color: #f2eddb; }
 .bear::before { content:''; position:absolute; inset:0; background:repeating-linear-gradient(95deg,transparent 0 22px,#ffffff04 23px 24px); }
 .bearGraphic { position: absolute; font: italic 220px Georgia,serif; color: #d6d8c411; top: 5%; left: -12px; }
-.bear .coverTitle { font: 800 clamp(34px,4.2vw,66px)/.9 Arial,sans-serif; letter-spacing:-3px; transform: rotate(-7deg); }
+.bear .coverTitle { font: 800 clamp(34px,4.2vw,66px)/.9 var(--font-ui); letter-spacing:-3px; transform: rotate(-7deg); }
 .spirited { background: #a44e39; color: #fff2d4; }
 .sun { position: absolute; height: 155px; width: 155px; border-radius: 50%; background: #d9b987; top: 18%; }
 .japanese { position: relative; z-index:1; writing-mode: vertical-rl; font: 34px Georgia,serif; letter-spacing: 5px; color: #593d30; }
@@ -36,9 +36,9 @@
 .corridor { position:absolute; width:80%; height:70%; top:15%; background:repeating-linear-gradient(90deg,#dce5d7 0 20%,#91aca1 21% 23%,#e3e9df 24% 40%); clip-path:polygon(0 0,100% 0,70% 100%,30% 100%); opacity:.7; }
 .severance .coverTitle { font-size: 31px; letter-spacing: -2px; background:#b3c3baaa; padding: 10px 17px; border-radius: 999px; }
 .entryHeading { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; min-height: 43px; margin-top: 15px; padding: 0 4px; }
-.entryHeading h3 { font: 700 17px Arial,sans-serif; letter-spacing: -.5px; }
-.rating { color: var(--accent); background: #f18c7312; border-radius: 12px; padding: 7px 9px; font: 800 25px Arial,sans-serif; letter-spacing: -1px; white-space: nowrap; }
-.rating small { font: 9px Arial,sans-serif; color: var(--muted); margin-left: 3px; }
+.entryHeading h3 { font: 800 17px var(--font-ui); letter-spacing: -.5px; }
+.rating { color: var(--accent); background: #f18c7312; border-radius: 12px; padding: 7px 9px; font: 900 25px var(--font-ui); letter-spacing: -1px; white-space: nowrap; }
+.rating small { font: 9px var(--font-ui); color: var(--muted); margin-left: 3px; }
 .meta { font-size: 9px; color: var(--muted); letter-spacing: 1px; margin-top: 9px; padding: 0 4px; }.meta span { margin: 0 5px; }
 .status { display: inline-block; color: #b7bcb0; font-size: 10px; margin-top: 18px; line-height: 1.5; padding: 0 4px; }
 .watching { color: #d5ba8d; }
@@ -63,7 +63,7 @@
 }
 
 .placeholder { background: linear-gradient(145deg, #343936, #30303c); color: #f3eee4; }
-.placeholderTitle { max-width: 100%; overflow-wrap: anywhere; text-align: center; font: 700 25px/1.2 Arial, sans-serif; padding: 12px; }
+.placeholderTitle { max-width: 100%; overflow-wrap: anywhere; text-align: center; font: 700 25px/1.2 var(--font-ui); padding: 12px; }
 .entryHeading h3 { overflow-wrap: anywhere; min-width: 0; }
 .unrated { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-height: 43px; padding: 7px 9px; border: 1px solid #ffffff0b; border-radius: 12px; background: #ffffff04; color: var(--muted); font-size: 10px; font-weight: 500; white-space: nowrap; }
 .unrated .icon { width: 13px; height: 13px; color: #c3baab; }
@@ -83,3 +83,19 @@
 .sortControl .sort { appearance: none; padding: 10px 32px 10px 36px; background: var(--surface); color: var(--foreground); font-family: inherit; cursor: pointer; }
 .sortChevron { position: absolute; right: 12px; pointer-events: none; }
 .sort:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.footer a { color: var(--muted); text-decoration: none; }
+.footer a:hover { color: var(--foreground); }
+.footer a:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+.entry { border-radius: 24px; background: linear-gradient(150deg, #2b2e2f, var(--surface) 65%); }
+.rating { border: 1px solid #f18c731c; border-radius: 15px; }
+.sectionHeading h1 span { font-weight: 750; border: 1px solid #ffffff0d; }
+
+.emptyLibrary { text-align: center; padding: 64px 24px; border: 1px dashed #ffffff20; border-radius: 24px; background: #ffffff02; }
+.emptyLibrary > svg { width: 34px; height: 34px; color: var(--accent); margin-bottom: 18px; }
+.emptyLibrary h2 { font-size: 24px; font-weight: 900; letter-spacing: -.5px; }
+.emptyLibrary p { margin-top: 10px; color: var(--muted); font-size: 14px; line-height: 1.7; }
+
+.entry { position: relative; }
+.sectionHeading h1:focus { outline: none; }

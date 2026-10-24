@@ -1,12 +1,12 @@
 .page { min-height: 100svh; display: flex; flex-direction: column; align-items: center; padding: clamp(28px, 6vh, 64px) 24px 30px; background: radial-gradient(ellipse at 50% 0, #f18c7309, transparent 65%); }
 .logo { width: 100%; max-width: 420px; margin-bottom: 28px; color: var(--foreground); text-decoration: none; font: 900 36px Georgia, serif; letter-spacing: -2px; }.logo span { color: var(--accent); }
-.panel { width: 100%; max-width: 420px; padding: 32px; border: 1px solid #ffffff14; border-radius: 24px; background: #ffffff03; box-shadow: 0 16px 48px #00000012; }
-.panel h1 { font-size: 32px; font-weight: 750; letter-spacing: -1.2px; line-height: 1.15; }
+.panel { width: 100%; max-width: 420px; padding: 32px; border: 1px solid #ffffff14; border-radius: 28px; background: linear-gradient(145deg, #ffffff06, #ffffff02); box-shadow: 0 16px 48px #00000012; }
+.panel h1 { font-size: 32px; font-weight: 900; letter-spacing: -1.2px; line-height: 1.15; }
 .description { color: var(--muted); font-size: 13px; line-height: 1.7; margin-top: 12px; padding-bottom: 24px; border-bottom: 1px solid #ffffff12; }
 .fields { display: flex; flex-direction: column; gap: 21px; margin-top: 26px; }
 .field { display: flex; flex-direction: column; gap: 9px; }
 .field label { font-size: 13px; font-weight: 600; }
-.field input { width: 100%; padding: 14px 15px; border: 1px solid #565a54; border-radius: 13px; background: #202324; color: var(--foreground); font: 14px Arial, sans-serif; }
+.field input { width: 100%; padding: 14px 15px; border: 1px solid #565a54; border-radius: 13px; background: #202324; color: var(--foreground); font: 14px var(--font-ui); }
 .field input::placeholder { color: #969990; }
 .field input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .submit { margin-top: 4px; border: 1px solid #f99c84; border-radius: 999px; padding: 14px; background: var(--accent); color: #271b17; font-size: 13px; font-weight: 700; box-shadow: 0 3px 0 #9e5142; }
@@ -29,3 +29,9 @@
 .message { border-color: #adc3a847; background: #adc3a80b; color: #d0dfc9; }
 .notice a { display: inline-flex; margin-top: 14px; color: inherit; font-size: 12px; font-weight: 600; text-underline-offset: 4px; }
 .back { display: inline-flex; align-items: center; gap: 7px; }
+
+.credits { margin-top: 26px; }
+.credits h2 { font-size: 15px; margin-bottom: 20px; }
+.credits p { color: var(--muted); font-size: 13px; line-height: 1.8; margin-top: 16px; }
+.credits a { display: inline-block; }
+.credits a:focus-visible { outline: 2px solid var(--accent); outline-offset: 5px; }
