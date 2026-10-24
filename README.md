@@ -71,13 +71,14 @@ MyTake runs locally with a public homepage, account pages, and a protected perso
 | `/profile/setup` | Username selection after signing in for accounts without a profile |
 | `/settings` | Change your username, return to the library after saving, or permanently delete your account after confirmation |
 | `/library` | Server-checked access, TMDB title search/selection, saved personal cards, All Media / Movies / TV Shows filters, rating/alphabetical sorting, an updating title count, and a profile dropdown |
+| `/watchlist` | Private saved titles, catalogue search, movie/TV filters, and confirmed move/remove actions |
 | `/about` | TMDB credits and required attribution |
 
 ### Adding media
 
 The personal library starts empty and displays only my saved entries. The Add Media dialog searches TMDB as I type and lets me select a movie or TV result with its poster and release year, then choose Completed (the default) or In Progress and enter an optional rating. For an in-progress show, I can select the last episode watched from TMDB season and episode lists; the card displays that progress. A typed title alone cannot be added without selecting a catalogue result. Missing titles, out-of-range scores, and ratings that don't follow 0.1 steps produce inline errors. Valid entries appear as new cards only after the database confirms the save. Pending saves disable the form; failed or uncertain saves preserve the selections and show an error. Retrying the same request cannot create a second entry. Adding a title already in my library shows a message instead of overwriting its rating. Blank ratings display an Unrated badge; a rating of 0 stays a real score.
 
-The server loads saved entries for the verified account; the parent library component owns their displayed list. The dialog saves through a server action and passes the confirmed database entry back through a callback, then React renders the updated collection. A sorting dropdown defaults to highest rating first, with lowest rating first and alphabetical A–Z options. Unrated entries come first in ascending order and last in descending order.
+The server loads saved entries for the verified account; the parent library component owns their displayed list. The dialog saves through a server action and passes the confirmed database entry back through a callback, then React renders the updated collection. A sorting dropdown defaults to highest rating first, with lowest rating first and alphabetical A–Z / Z–A options. Unrated entries come first in ascending order and last in descending order.
 
 Entries are saved to my Supabase account: **refreshing the page keeps the library, ratings, and viewing progress**. Selected cards use TMDB posters when available, with a title cover as fallback when no poster is supplied. The public homepage keeps its illustrative sample collection.
 
@@ -86,6 +87,12 @@ Entries are saved to my Supabase account: **refreshing the page keeps the librar
 Each saved card has a three-dot menu with **Edit Entry** and **Remove from Library**. Edit Entry opens with the saved rating, viewing status, and episode progress; the selected media stays fixed. I can change or clear a rating, update the last episode watched, or mark the title completed. Cancel discards the draft. Saving updates the existing card and its sort position only after database confirmation.
 
 Removal asks for confirmation and names the title, explaining that its rating and viewing progress will be deleted. The card disappears only after confirmed removal. Failed or uncertain edits/removals show an error rather than assuming success.
+
+### Watchlist
+
+My Watchlist keeps movies and TV shows I want to watch, with A–Z (the default) and Z–A sorting options alongside All Media / Movies / TV Shows filters. Adding a title uses the same TMDB search without asking for a rating or viewing progress. Cards offer **Move to Library** and **Remove from Watchlist** in their three-dot menu.
+
+Moving opens the rating/status form with Completed selected initially. I can choose In Progress, select an episode for a show, and leave the rating blank if I want. The database saves the library entry and removes watchlist membership together: a failed save keeps the title on the watchlist. A title cannot belong to both collections. Removal asks for confirmation; account deletion clears both collections.
 
 ### Accounts
 
@@ -162,7 +169,7 @@ Viewing status defaults to Completed. The optional episode picker appears only f
 
 ## Library database setup
 
-`supabase/library.sql` records the private library schema and atomic save function applied to the connected project. For a separate Supabase project, apply the profile schema, then `supabase/library.sql`, followed by `supabase/library-edit.sql` for owner-only edits. The Next.js application uses the publishable key and the user's verified session; it does not need an administrator key for library access.
+`supabase/library.sql` records the private library schema and atomic save function applied to the connected project. For a separate Supabase project, apply the profile schema, then `supabase/library.sql`, followed by `supabase/library-edit.sql` for owner-only edits and `supabase/watchlist.sql` for watchlist storage and moves. The Next.js application uses the publishable key and the user's verified session; it does not need an administrator key for library access.
 
 Catalogue facts and personal opinions are stored separately. `media_snapshots` holds the selected title, TMDB identity/type, poster path, and year. `library_entries` holds the personal rating, viewing status, and optional episode progress. Both tables are private to the account for this milestone; a global shared catalogue can be considered later without exposing personal ratings. Neither table uses timestamps.
 
@@ -174,6 +181,8 @@ Library removal grants owner-only deletion of private media snapshots; the linke
 
 Entry editing uses column-limited UPDATE grants and ownership policies: only ratings, status, and episode progress can be changed; owner and media identity remain fixed. Changed episodes are verified against the saved show on the server, while unchanged saved progress can be retained without another catalogue request. `supabase/tests/library-edit.sql` verifies owner edits, progress changes/clearing, zero/unrated, constraints, immutable identity/ownership, and cross-account/anonymous denial with rolled-back fixtures. Focused lint, TypeScript, and these database tests passed.
 
-Library filters use TMDB’s movie/TV type, so anime films appear in Movies and anime series in TV Shows. All Media shows the full library; there is no separate Anime tab. The displayed title count and empty state follow the active filter, and the selected sorting order applies within it. Adding, editing, and removal continue to respect the active filter. Filters reset to All Media on a full refresh; they do not change stored entries. The latest filter browser walkthrough and full build remain user-run checks.
+Library filters use TMDB’s movie/TV type, so anime films appear in Movies and anime series in TV Shows. All Media shows the full library; there is no separate Anime tab. The displayed title count and empty state follow the active filter, and the selected sorting order applies within it. Adding, editing, and removal continue to respect the active filter. Filters reset to All Media on a full refresh; they do not change stored entries. The Movies and TV Shows filters were verified in the browser after fixing local development requests from `127.0.0.1`; the latest full build remains a user-run check.
 
 The public homepage describes movies and TV shows, with no separate anime wording. Its static sample library mirrors the current filters, descending rating order, poster cards, and completion/progress labels. The simplified demo omits per-card action dots and sorting controls, and reuses the real Add Media button styling. Demo posters are stored locally in `public/demo-posters/` and credited to TMDB through About & Credits. Homepage copy describes overall ratings through an episode, without presenting separate episode/season ratings as implemented.
+
+Watchlist storage uses owner-private `watchlist_entries` linked to catalogue snapshots. A collection field and matching foreign keys enforce exclusive library/watchlist membership in the database. Caller-permission functions save and move entries atomically, with safe retries. `supabase/tests/watchlist.sql` passed rolled-back checks for ownership, cross-account and anonymous denial, duplicates, invalid-move rollback, successful moves, retries, and deletion cascades. The existing library database fixture also passed after this schema change. Focused ESLint, TypeScript, and whitespace checks passed; Watchlist navigation and opening the add dialog were verified in the browser. The complete add/move/remove walkthrough and full production build remain user-run checks.

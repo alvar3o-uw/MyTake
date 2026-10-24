@@ -6,10 +6,14 @@ import type { EpisodeProgress } from "@/lib/tmdb/episodes";
 import Image from "next/image";
 import { posterUrl, type MediaResult } from "@/lib/tmdb/media";
 import { saveLibraryEntry } from "../library/actions";
+import { saveWatchlistEntry } from "../watchlist/actions";
+import type { WatchlistEntry } from "@/lib/watchlist/records";
 import type { LibraryEntry } from "../types";
 import styles from "./AddMediaDialog.module.css";
 
-export default function AddMediaDialog({ onAdd }: { onAdd: (entry: LibraryEntry) => void }) {
+type AddMediaProps = { destination?: "library"; onAdd: (entry: LibraryEntry) => void } | { destination: "watchlist"; onAdd: (entry: WatchlistEntry) => void };
+export default function AddMediaDialog(props: AddMediaProps) {
+  const isWatchlist = props.destination === "watchlist";
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<MediaResult | null>(null);
@@ -77,7 +81,7 @@ export default function AddMediaDialog({ onAdd }: { onAdd: (entry: LibraryEntry)
         aria-haspopup="dialog"
         onClick={() => setIsOpen(true)}
       >
-        <svg className={styles.icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true" focusable="false"><path d="M12 5v14 M5 12h14" /></svg> Add Media
+        <svg className={styles.icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true" focusable="false"><path d="M12 5v14 M5 12h14" /></svg> {isWatchlist ? "Add to Watchlist" : "Add Media"}
       </button>
       <dialog
         ref={dialogRef}
@@ -102,8 +106,8 @@ export default function AddMediaDialog({ onAdd }: { onAdd: (entry: LibraryEntry)
           formRef.current?.reset();
         }}
       >
-        <h2 id="add-media-title">Add Media</h2>
-        <p id="add-media-description">Find a story. Add your opinion so far.</p>
+        <h2 id="add-media-title">{isWatchlist ? "Add to Watchlist" : "Add Media"}</h2>
+        <p id="add-media-description">{isWatchlist ? "Find your next watch." : "Find a story. Add your opinion so far."}</p>
         <form
           ref={formRef}
           noValidate
@@ -134,10 +138,10 @@ export default function AddMediaDialog({ onAdd }: { onAdd: (entry: LibraryEntry)
               rating?.focus();
               return;
             }
-            if (!selected || !rating) return;
+            if (!selected || (!isWatchlist && !rating)) return;
             const draft = {
               tmdbId: selected.tmdbId, mediaType: selected.mediaType,
-              status, rating: rating.value === "" ? null : rating.valueAsNumber,
+              status, rating: !rating || rating.value === "" ? null : rating.valueAsNumber,
               progress: status === "In Progress" && selected.mediaType === "tv" ? progress : undefined,
             };
             const signature = JSON.stringify(draft);
@@ -146,9 +150,15 @@ export default function AddMediaDialog({ onAdd }: { onAdd: (entry: LibraryEntry)
             setSaving(true);
             setSaveError("");
             try {
-              const result = await saveLibraryEntry({ ...draft, requestId: saveRequest.current.id });
-              if (result.error) { setSaveError(result.error); return; }
-              if (result.entry) { onAdd(result.entry); setIsOpen(false); }
+              if (props.destination === "watchlist") {
+                const result = await saveWatchlistEntry({ requestId: saveRequest.current.id, tmdbId: selected.tmdbId, mediaType: selected.mediaType });
+                if (result.error) { setSaveError(result.error); return; }
+                if (result.entry) { props.onAdd(result.entry); setIsOpen(false); }
+              } else {
+                const result = await saveLibraryEntry({ ...draft, requestId: saveRequest.current.id });
+                if (result.error) { setSaveError(result.error); return; }
+                if (result.entry) { props.onAdd(result.entry); setIsOpen(false); }
+              }
             } catch {
               setSaveError("Couldn’t confirm the save. Your selections are still here; try again or refresh your library to check.");
             } finally {
@@ -206,6 +216,7 @@ export default function AddMediaDialog({ onAdd }: { onAdd: (entry: LibraryEntry)
             ) : <small>Type at least two characters to search.</small>}
             {errors.title && <small id="title-error" className={styles.error} role="alert">{errors.title}</small>}
           </div>
+          {!isWatchlist && <>
           <fieldset className={styles.viewingStatus}>
             <legend>Viewing Status</legend>
             <div className={styles.statusOptions}>
@@ -243,11 +254,12 @@ export default function AddMediaDialog({ onAdd }: { onAdd: (entry: LibraryEntry)
             <small id="rating-help">Leave blank for unrated.</small>
             {errors.rating && <small id="rating-error" className={styles.error} role="alert">{errors.rating}</small>}
           </div>
+          </>}
           </fieldset>
           {saveError && <p ref={saveErrorRef} tabIndex={-1} className={styles.saveError} role="alert">{saveError}</p>}
           <div className={styles.actions}>
             <button type="button" disabled={saving} onClick={() => setIsOpen(false)}>Cancel</button>
-            <button type="submit" disabled={saving} className={styles.primary}>{saving ? "Saving…" : "Add to Library"}</button>
+            <button type="submit" disabled={saving} className={styles.primary}>{saving ? "Saving…" : isWatchlist ? "Add to Watchlist" : "Add to Library"}</button>
           </div>
         </form>
       </dialog>

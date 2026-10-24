@@ -9,7 +9,7 @@ import UiIcon from "../components/UiIcon";
 import { useRef, useState } from "react";
 import { sortLibrary, type LibraryOrder } from "@/lib/sort-library";
 import LibraryEntryMenu from "../components/LibraryEntryMenu";
-import AccountMenu from "../components/AccountMenu";
+import CollectionHeader from "../components/CollectionHeader";
 import AddMediaDialog from "../components/AddMediaDialog";
 import type { LibraryEntry } from "../types";
 import styles from "./page.module.css";
@@ -41,13 +41,7 @@ export default function Library({ username, initialEntries, profileUpdated = fal
 
   return (
     <div className={styles.archive}>
-      <header className={styles.header}>
-        <div className={styles.wordmark}>mytake<span>!</span></div>
-        <nav aria-label="Main navigation" className={styles.navigation}>
-          <button type="button" disabled className={styles.active} aria-current="page"><UiIcon name="books" className={styles.icon} />Library</button><button type="button" disabled><Icon path="M6 3h12v18l-6-4-6 4z" />Watchlist</button>
-        </nav>
-        <AccountMenu username={username} />
-      </header>
+      <CollectionHeader username={username} active="library" />
 
       <main className={styles.main}>
         {profileUpdated && <ProfileNotice username={username} />}
@@ -68,6 +62,7 @@ export default function Library({ username, initialEntries, profileUpdated = fal
                 <option value="descending">Descending Order</option>
                 <option value="ascending">Ascending Order</option>
                 <option value="alphabetical">Alphabetical (A–Z)</option>
+                <option value="alphabetical-reverse">Alphabetical (Z–A)</option>
               </select>
               <svg className={styles.sortChevron} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
             </div>

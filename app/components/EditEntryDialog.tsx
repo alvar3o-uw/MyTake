@@ -3,13 +3,14 @@
 import { useEffect, useId, useRef, useState } from "react";
 import Image from "next/image";
 import type { LibraryEntry } from "../types";
+import { moveWatchlistEntry } from "../watchlist/actions";
 import { updateLibraryEntry } from "../library/actions";
 import { posterUrl } from "@/lib/tmdb/media";
 import EpisodePicker from "./EpisodePicker";
 import styles from "./AddMediaDialog.module.css";
 
-export default function EditEntryDialog({ entry, onSaved, onClose }: {
-  entry: LibraryEntry; onSaved: (entry: LibraryEntry) => void; onClose: () => void;
+export default function EditEntryDialog({ entry, onSaved, onClose, mode = "edit" }: {
+  mode?: "edit" | "move"; entry: LibraryEntry; onSaved: (entry: LibraryEntry) => void; onClose: () => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const ratingInput = useRef<HTMLInputElement>(null);
@@ -33,8 +34,8 @@ export default function EditEntryDialog({ entry, onSaved, onClose }: {
   }
 
   return <dialog ref={dialog} className={styles.dialog} aria-labelledby={`${id}-title`} onClose={onClose} onCancel={(event) => { if (pendingRef.current) event.preventDefault(); }}>
-    <h2 id={`${id}-title`}>Edit Entry</h2>
-    <p>Update your opinion and viewing progress.</p>
+    <h2 id={`${id}-title`}>{mode === "move" ? "Move to Library" : "Edit Entry"}</h2>
+    <p>{mode === "move" ? "Choose your rating and viewing status." : "Update your opinion and viewing progress."}</p>
     <div className={`${styles.chosen} ${styles.editMedia}`}>
       {entry.posterPath && <Image src={posterUrl(entry.posterPath)} width={40} height={60} alt="" unoptimized />}
       <div><strong>{entry.title}</strong><small>{entry.year || "Year unavailable"} · {entry.type}</small></div>
@@ -46,7 +47,7 @@ export default function EditEntryDialog({ entry, onSaved, onClose }: {
       setPending(true);
       setError("");
       try {
-        const result = await updateLibraryEntry(entry.id, {
+        const result = await (mode === "move" ? moveWatchlistEntry : updateLibraryEntry)(entry.id, {
           rating: ratingInput.current.value === "" ? null : ratingInput.current.valueAsNumber,
           status, progress: status === "In Progress" && entry.mediaType === "tv" ? progress : undefined,
         });
@@ -84,7 +85,7 @@ export default function EditEntryDialog({ entry, onSaved, onClose }: {
       {error && <p ref={errorRef} tabIndex={-1} className={styles.saveError} role="alert">{error}</p>}
       <div className={styles.actions}>
         <button type="button" disabled={pending} onClick={() => dialog.current?.close()}>Cancel</button>
-        <button type="submit" className={styles.primary} disabled={pending}>{pending ? "Saving…" : "Save Changes"}</button>
+        <button type="submit" className={styles.primary} disabled={pending}>{pending ? "Saving…" : mode === "move" ? "Move to Library" : "Save Changes"}</button>
       </div>
     </form>
   </dialog>;

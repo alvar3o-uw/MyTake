@@ -53,7 +53,8 @@ export async function saveLibraryEntry(input: SaveLibraryInput): Promise<SaveLib
       if (saveError.code === "23505") {
         const retry = await supabase.from("library_entries").select(librarySelection).eq("user_id", user.id).eq("id", input.requestId).maybeSingle();
         if (retry.data) return { entry: toLibraryEntry(retry.data as unknown as LibraryRecord) };
-        return { error: "This title is already in your library. Your existing rating hasn’t changed." };
+        const membership = await supabase.from("media_snapshots").select("collection").eq("user_id", user.id).eq("tmdb_id", input.tmdbId).eq("media_type", input.mediaType).maybeSingle();
+        return { error: membership.data?.collection === "watchlist" ? "This title is on your watchlist. Move it to your library from there." : "This title is already in your library. Your existing rating hasn’t changed." };
       }
       return { error: "Couldn’t confirm the save. Your selections are still here; try again or refresh your library to check." };
     }
