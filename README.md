@@ -2,6 +2,8 @@
 
 A personal home for the media I watch and the opinions I form along the way.
 
+[Open MyTake](https://my-take-seven.vercel.app)
+
 ## Why I'm building this
 
 I love consuming media, but I enjoy picking it apart just as much. I like thinking critically about what worked, what didn't, and why one story stays with me while another doesn't. Sometimes an 8 or a 9 doesn't quite capture how I feel. I want to be able to give something an 8.8 and have a place for the reasoning behind it.
@@ -27,7 +29,7 @@ Folders are outside the MVP. Ratings use a 0–10 scale in steps of 0.1. Categor
 
 ## Tech stack
 
-The website is being built with TypeScript, React, Next.js, and CSS Modules. Supabase Auth, profiles, and private library storage are connected. Website deployment remains upcoming work.
+The website is being built with TypeScript, React, Next.js, and CSS Modules. Supabase Auth, profiles, and private library storage are connected. The website is deployed on Vercel at [my-take-seven.vercel.app](https://my-take-seven.vercel.app).
 
 | Technology | Purpose | Status |
 | --- | --- | --- |
@@ -41,7 +43,7 @@ The website is being built with TypeScript, React, Next.js, and CSS Modules. Sup
 | Supabase Edge Functions | Protected account deletion using the Auth admin API | In use |
 | Supabase Auth | Email/password accounts, cookie sessions, and protected library access | Connected |
 | TMDB API | Title search, media identities, release years, and posters | Connected |
-| Vercel | Website deployment | Planned |
+| Vercel | Website hosting and production builds | Deployed |
 
 A good-looking, comfortable interface matters to me alongside the functionality. I want MyTake to feel like a place I enjoy returning to, rather than just a form for entering scores.
 
@@ -61,7 +63,7 @@ Manga, novels, and ways to share ratings with other people may come later. For n
 
 ## Current status
 
-MyTake runs locally with a public homepage, account pages, and a protected personal library. The design uses a single dark theme, coral accents, rounded controls, and consistent line icons. Locally hosted Nunito gives the interface a playful, rounded feel, while the serif wordmark stays distinct. The font and its SIL Open Font License are in `app/fonts/`. The exclamation mark stays in the `mytake!` wordmark; the rest of the interface is kept clean. Profiles use unique usernames and an initials avatar.
+MyTake runs locally and on Vercel with a public homepage, account pages, and a protected personal library. The design uses a single dark theme, coral accents, rounded controls, and consistent line icons. Locally hosted Nunito gives the interface a playful, rounded feel, while the serif wordmark stays distinct. The font and its SIL Open Font License are in `app/fonts/`. The coral exclamation mark from the `mytake!` wordmark also serves as the browser-tab icon on a charcoal background; the rest of the interface is kept clean. Profiles use unique usernames and an initials avatar.
 
 | Page | What works today |
 | --- | --- |
@@ -118,7 +120,8 @@ Catalogue information and personal opinions have separate responsibilities: TMDB
 - Arc-level ratings.
 - Profile picture uploads.
 - Further episode browsing refinements; arc ratings remain planned.
-- Deployment and the later mobile interface.
+- Custom email delivery and production confirmation/recovery testing before public registration.
+- The later mobile interface.
 
 ### Verification
 
@@ -253,8 +256,8 @@ The UI uses short page fades, eased dialog/backdrop entrances, dropdown reveals,
 
 Sign In now includes Forgot Password. The reset request sends a Supabase email without revealing whether the address has an account. Open the latest email in the same browser/device that requested it: this uses Supabase’s existing PKCE flow and default email template. The callback exchanges the one-time code and accepts only the library or reset-form destination; expired/used recovery links show a fresh-request screen. The reset form checks matching passwords with at least eight characters and verifies the live account on the server. Confirmed changes request global sign-out and return to Sign In; failures preserve useful feedback without returning passwords or tokens.
 
-Authentication URLs now come from a validated site-origin helper shared by sign-up and recovery. Development can use the exact approved localhost, 127.0.0.1 and current Wi-Fi addresses. Hosted authentication requires an explicit HTTPS `NEXT_PUBLIC_SITE_URL`, refuses arbitrary request origins, and uses the configured canonical origin for callbacks. Supabase’s local callback allowlist now contains confirmation and recovery callbacks for all three approved local origins; the Site URL remains localhost until the production domain exists. No production URL has been registered yet.
+Authentication URLs now come from a validated site-origin helper shared by sign-up and recovery. Development can use the exact approved localhost, 127.0.0.1 and current Wi-Fi addresses. Hosted authentication requires an explicit HTTPS `NEXT_PUBLIC_SITE_URL`, refuses arbitrary request origins, and uses the configured canonical origin for callbacks. Supabase’s local callback allowlist now contains confirmation and recovery callbacks for all three approved local origins; the Site URL is now `https://my-take-seven.vercel.app`, with exact production confirmation and recovery callbacks saved alongside the six local callbacks.
 
 [Deployment and authentication setup](docs/deployment.md) records the exact Vercel environment variables, Supabase Site URL/callback entries, email delivery requirements and release walkthrough. The dashboard currently uses Supabase’s default sender/templates. A custom SMTP sender is needed to deliver confirmation/recovery emails beyond project-team addresses; configuring it requires an email provider and sender details and has not been done here.
 
-Five focused auth tests passed for origin validation, redirect allowlisting, password validation, live-user gating, confirmed update/global sign-out and partial failure reporting. Focused lint, TypeScript and the production build passed. Browser review verified recovery styling; HTTP checks verified invalid-link routing and local-host preservation. No agent-run test changed an actual password. I completed the real recovery email/password-update flow and confirmed sign-in with the new password. Old-password rejection, used-link retry and deployed confirmation/recovery checks remain separate checks. Production URL configuration is pending until Vercel provides the domain.
+Five focused auth tests passed for origin validation, redirect allowlisting, password validation, live-user gating, confirmed update/global sign-out and partial failure reporting. Focused lint, TypeScript and the production build passed. Browser review verified recovery styling; HTTP checks verified invalid-link routing and local-host preservation. No agent-run test changed an actual password. I completed the real recovery email/password-update flow and confirmed sign-in with the new password. Old-password rejection, used-link retry and deployed confirmation/recovery checks remain separate checks. Vercel successfully built and deployed commit `f85f1b6`. The live homepage and sign-in form were checked, and I confirmed the deployed app works after signing in. Production email confirmation/recovery remains to be tested after custom SMTP setup.

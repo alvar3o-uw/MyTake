@@ -1,6 +1,6 @@
 # MyTake authentication deployment
 
-Production deployment is pending: no production URL has been selected yet.
+Production is deployed at https://my-take-seven.vercel.app. Vercel built commit `f85f1b6` successfully; the homepage and sign-in form loaded, and the user confirmed the deployed app works. Custom SMTP and production email-flow checks remain pending.
 
 ## Vercel environment
 
@@ -8,7 +8,7 @@ Set these in the Vercel project’s **Production** environment before deploying:
 
 | Variable | Value |
 | --- | --- |
-| `NEXT_PUBLIC_SITE_URL` | The stable production origin, such as `https://your-project.vercel.app`, without a path |
+| `NEXT_PUBLIC_SITE_URL` | `https://my-take-seven.vercel.app` |
 | `NEXT_PUBLIC_SUPABASE_URL` | The existing MyTake Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | The existing publishable key |
 | `TMDB_READ_ACCESS_TOKEN` | The existing server-only TMDB read token |
@@ -19,15 +19,15 @@ Use one canonical production domain for authentication. Redirect any alternate d
 
 ## Supabase URL Configuration
 
-After the production domain exists:
+The following production configuration is saved:
 
 1. Set **Authentication → URL Configuration → Site URL** to the same `NEXT_PUBLIC_SITE_URL` origin.
 2. Add the exact production redirect URLs, substituting that origin:
-   - `https://your-project.vercel.app/auth/callback`
-   - `https://your-project.vercel.app/auth/callback?next=/reset-password`
+   - `https://my-take-seven.vercel.app/auth/callback`
+   - `https://my-take-seven.vercel.app/auth/callback?next=/reset-password`
 3. Retain the local redirects only while using the connected project for local development.
 
-The six local callbacks below were verified saved in the connected Supabase project with user approval. Site URL remains `http://localhost:3000` until deployment. Local callback URLs used by the app:
+The six local callbacks below were verified saved in the connected Supabase project with user approval. Site URL is `https://my-take-seven.vercel.app`; both exact production callbacks are also saved, for eight allowed URLs total. Local callback URLs used by the app:
 
 - `http://localhost:3000/auth/callback`
 - `http://localhost:3000/auth/callback?next=/reset-password`
