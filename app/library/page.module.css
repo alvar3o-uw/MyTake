@@ -1,6 +1,7 @@
 .archive { max-width: 1440px; margin: auto; padding: 0 5%; }
 .header { min-height: 90px; display: flex; align-items: center; gap: 65px; border-bottom: 1px solid var(--border); }
-.wordmark { font: 900 38px Georgia, serif; letter-spacing: -2px; }
+.wordmark { font: 900 38px Georgia, serif; letter-spacing: -2px; color: inherit; text-decoration: none; }
+.wordmark:focus-visible { outline: 2px solid var(--accent); outline-offset: 5px; border-radius: 5px; }
 .wordmark span { color: var(--accent); margin-left: 2px; }
 .navigation { display: flex; align-items: center; gap: 8px; }
 .navigation a { border: 0; background: transparent; color: var(--muted); font-size: 13px; padding: 10px 17px; border-radius: 999px; }
@@ -112,3 +113,8 @@
 @media (max-width: 560px) {
   .sectionHeading { flex-wrap: wrap; gap: 18px; }
 }
+
+.entryLink { color: inherit; text-decoration: none; }
+.entryLink::after { content: ""; position: absolute; inset: 0; border-radius: 20px; }
+.entry:has(.entryLink:focus-visible) { outline: 2px solid var(--accent); outline-offset: 4px; }
+.entryLink:focus-visible { outline: none; }

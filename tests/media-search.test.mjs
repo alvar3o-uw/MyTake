@@ -40,3 +40,17 @@ test('episode data supports specials and retains explicit episode identity', asy
   assert.equal(progressLabel('Completed', episodes[1]), 'Completed');
   assert.equal(progressLabel('In Progress'), 'In Progress');
 });
+
+test('episode metadata handles missing descriptions and rejects external image URLs', async () => {
+  const { normalizeEpisodeDetails } = await import('../lib/tmdb/episodes.ts');
+  const episodes = normalizeEpisodeDetails([
+    { id: 1, season_number: 0, episode_number: 1, name: 'Special', overview: ' A description. ', still_path: '/still.jpg' },
+    { id: 2, season_number: 0, episode_number: 2, name: 'No image', overview: null, still_path: 'https://untrusted.example/image.jpg' },
+    { id: 3, season_number: 1, episode_number: 1, name: 'Other season', overview: 'Excluded' },
+  ], 0);
+  assert.equal(episodes.length, 2);
+  assert.equal(episodes[0].overview, 'A description.');
+  assert.equal(episodes[0].stillPath, '/still.jpg');
+  assert.equal(episodes[1].overview, '');
+  assert.equal(episodes[1].stillPath, null);
+});

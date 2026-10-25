@@ -20,3 +20,18 @@ export function progressLabel(status: "In Progress" | "Completed", progress?: Ep
   const season = progress.seasonNumber === 0 ? "Specials" : `S${progress.seasonNumber}`;
   return `${status} · Through ${season} E${String(progress.episodeNumber).padStart(2, "0")}`;
 }
+
+export type EpisodeDetails = EpisodeProgress & { overview: string; stillPath: string | null };
+
+export function normalizeEpisodeDetails(input: unknown, seasonNumber: number): EpisodeDetails[] {
+  const episodes = normalizeEpisodes(input, seasonNumber);
+  if (!Array.isArray(input)) return [];
+  const metadata = new Map(input.filter(item => item && typeof item === "object").map(item => [item.id, item]));
+  return episodes.map(episode => {
+    const item = metadata.get(episode.episodeId);
+    return { ...episode,
+      overview: typeof item?.overview === "string" ? item.overview.trim() : "",
+      stillPath: typeof item?.still_path === "string" && /^\/[a-zA-Z0-9._-]+$/.test(item.still_path) ? item.still_path : null,
+    };
+  });
+}

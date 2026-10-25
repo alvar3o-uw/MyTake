@@ -22,10 +22,10 @@ function Icon({ path }: { path: string }) {
   );
 }
 
-export default function Library({ username, initialEntries, profileUpdated = false }: { username: string; initialEntries: LibraryEntry[]; profileUpdated?: boolean }) {
+export default function Library({ username, initialEntries, profileUpdated = false, initialFilter = "all", initialOrder = "descending" }: { username: string; initialEntries: LibraryEntry[]; profileUpdated?: boolean; initialFilter?: "all" | "movie" | "tv"; initialOrder?: LibraryOrder }) {
   const [entries, setEntries] = useState<LibraryEntry[]>(initialEntries);
-  const [order, setOrder] = useState<LibraryOrder>("descending");
-  const [mediaFilter, setMediaFilter] = useState<"all" | "movie" | "tv">("all");
+  const [order, setOrder] = useState<LibraryOrder>(initialOrder);
+  const [mediaFilter, setMediaFilter] = useState<"all" | "movie" | "tv">(initialFilter);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const filteredEntries = entries.filter((entry) => mediaFilter === "all" || entry.mediaType === mediaFilter);
   const sortedEntries = sortLibrary(filteredEntries, order);
@@ -81,7 +81,7 @@ export default function Library({ username, initialEntries, profileUpdated = fal
                   {!entry.posterPath && <><span className={styles.coverKicker}>MYTAKE</span><span className={styles.placeholderTitle}>{entry.title}</span></>}
                 </div>
                 <div className={styles.entryHeading}>
-                  <h3>{entry.title}</h3>
+                  <h3><Link className={styles.entryLink} href={`/media/${entry.mediaType}/${entry.tmdbId}?filter=${mediaFilter}&order=${order}`}>{entry.title}</Link></h3>
                   <span className={entry.rating === null ? styles.unrated : styles.rating}>
                     {entry.rating === null ? <><Icon path="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z" /><span>Unrated</span></> : <>{entry.rating}<small>/10</small></>}
                   </span>

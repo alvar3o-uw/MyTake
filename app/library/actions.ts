@@ -61,6 +61,7 @@ export async function saveLibraryEntry(input: SaveLibraryInput): Promise<SaveLib
     const saved = await supabase.from("library_entries").select(librarySelection).eq("user_id", user.id).eq("id", input.requestId).single();
     if (saved.error || !saved.data) return { error: "The save may have completed, but confirmation failed. Try again or refresh your library to check." };
     revalidatePath("/library");
+    revalidatePath("/media/[type]/[id]", "page");
     return { entry: toLibraryEntry(saved.data as unknown as LibraryRecord) };
   } catch {
     return { error: "Couldn’t confirm the save. Check your connection and try again, or refresh your library to check." };
@@ -84,6 +85,7 @@ export async function removeLibraryEntry(entryId: string, confirmed: boolean): P
     }
     // An already-removed entry is also a successful retry, without exposing other owners.
     revalidatePath("/library");
+    revalidatePath("/media/[type]/[id]", "page");
     return { removedId: entryId };
   } catch {
     return { error: "Couldn’t confirm removal. Try again or refresh your library to check." };
@@ -130,6 +132,7 @@ export async function updateLibraryEntry(entryId: string, changes: Pick<SaveLibr
     const saved = await supabase.from("library_entries").select(librarySelection).eq("id", entryId).eq("user_id", user.id).single();
     if (saved.error || !saved.data) return { error: "Your changes may have saved, but confirmation failed. Try again or refresh your library to check." };
     revalidatePath("/library");
+    revalidatePath("/media/[type]/[id]", "page");
     return { entry: toLibraryEntry(saved.data as unknown as LibraryRecord) };
   } catch {
     return { error: "Couldn’t confirm your changes. Your edits are still here; try again or refresh your library to check." };

@@ -12,7 +12,7 @@ export default function AccountPage({ mode, confirmationFailed = false }: { mode
 
   return (
     <main className={styles.page}>
-      <Link href="/" className={styles.logo} aria-label="MyTake home">mytake<span>!</span></Link>
+      <Link href="/library" className={styles.logo} aria-label="MyTake — My Library">mytake<span>!</span></Link>
       <section className={styles.panel} aria-labelledby="account-heading">
         <h1 id="account-heading">{signingUp ? "Make it your take." : "Welcome back."}</h1>
         <p className={styles.description}>{signingUp ? "A home for your stories and opinions." : "Your next great take starts here."}</p>

@@ -71,6 +71,8 @@ MyTake runs locally with a public homepage, account pages, and a protected perso
 | `/profile/setup` | Username selection after signing in for accounts without a profile |
 | `/settings` | Change your username, return to the library after saving, or permanently delete your account after confirmation |
 | `/library` | Server-checked access, TMDB title search/selection, saved personal cards, All Media / Movies / TV Shows filters, rating/alphabetical sorting, an updating title count, and a profile dropdown |
+| `/media/[type]/[id]` | Private library title details, synopsis, genres, movie runtime, saved take, and Edit Entry |
+| `/media/tv/[id]/episodes` | Season/Specials browsing and private per-episode ratings with explicit row saves |
 | `/watchlist` | Private saved titles, catalogue search, movie/TV filters, and confirmed move/remove actions |
 | `/about` | TMDB credits and required attribution |
 
@@ -110,9 +112,9 @@ Catalogue information and personal opinions have separate responsibilities: TMDB
 
 ### Still to build
 
-- Media detail pages for opening a title from the library.
+- Season-level and arc-level ratings.
 - Profile picture uploads.
-- Individual episode, season, and arc ratings; episode progress is selectable, while these separate ratings are still planned.
+- Further episode browsing refinements; season and arc ratings remain planned.
 - Deployment and the later mobile interface.
 
 ### Verification
@@ -169,7 +171,7 @@ Viewing status defaults to Completed. The optional episode picker appears only f
 
 ## Library database setup
 
-`supabase/library.sql` records the private library schema and atomic save function applied to the connected project. For a separate Supabase project, apply the profile schema, then `supabase/library.sql`, followed by `supabase/library-edit.sql` for owner-only edits and `supabase/watchlist.sql` for watchlist storage and moves. The Next.js application uses the publishable key and the user's verified session; it does not need an administrator key for library access.
+`supabase/library.sql` records the private library schema and atomic save function applied to the connected project. For a separate Supabase project, apply the profile schema, then `supabase/library.sql`, followed by `supabase/library-edit.sql` for owner-only edits and `supabase/watchlist.sql` for watchlist storage and moves, then `supabase/episode-ratings.sql` for per-episode ratings and `supabase/episode-favourites.sql` for favourite episodes, followed by `supabase/reviews.sql` for written reviews. The Next.js application uses the publishable key and the user's verified session; it does not need an administrator key for library access.
 
 Catalogue facts and personal opinions are stored separately. `media_snapshots` holds the selected title, TMDB identity/type, poster path, and year. `library_entries` holds the personal rating, viewing status, and optional episode progress. Both tables are private to the account for this milestone; a global shared catalogue can be considered later without exposing personal ratings. Neither table uses timestamps.
 
@@ -186,3 +188,23 @@ Library filters use TMDB’s movie/TV type, so anime films appear in Movies and 
 The public homepage describes movies and TV shows, with no separate anime wording. Its static sample library mirrors the current filters, descending rating order, poster cards, and completion/progress labels. The simplified demo omits per-card action dots and sorting controls, and reuses the real Add Media button styling. Demo posters are stored locally in `public/demo-posters/` and credited to TMDB through About & Credits. Homepage copy describes overall ratings through an episode, without presenting separate episode/season ratings as implemented.
 
 Watchlist storage uses owner-private `watchlist_entries` linked to catalogue snapshots. A collection field and matching foreign keys enforce exclusive library/watchlist membership in the database. Caller-permission functions save and move entries atomically, with safe retries. `supabase/tests/watchlist.sql` passed rolled-back checks for ownership, cross-account and anonymous denial, duplicates, invalid-move rollback, successful moves, retries, and deletion cascades. The existing library database fixture also passed after this schema change. Focused ESLint, TypeScript, and whitespace checks passed; Watchlist navigation and opening the add dialog were verified in the browser. The complete add/move/remove walkthrough and full production build remain user-run checks.
+
+Library cards open one reusable media detail route, using the movie/TV type and TMDB ID from the URL. The server verifies the account and loads only its saved library entry before requesting catalogue details with the server-only token. The page displays the poster, synopsis, genres, movie runtime when available, and the saved rating/status/progress. Edit Entry reuses the existing form. The My Library return link restores the chosen filter and sort order. Missing or unowned entries show a not-found page; a catalogue failure leaves the saved take available with a retry control. No database schema change was needed. Focused lint/TypeScript and movie/TV opening, edit prefill/cancel, and return-navigation browser checks passed; saving edits from this page, mobile review, and the full build remain user checks.
+
+### Episode ratings
+
+TV detail pages include an Episodes button opening a dedicated page. It loads one season at a time, including Specials, with landscape thumbnails, expandable descriptions, and 0–10 ratings in 0.1 steps. Each edited row has an explicit Save button and pending/error feedback; successful saves leave no persistent message. Blank clears a saved rating; zero remains a score. Drafts survive season switches within the page, but must be saved before leaving or refreshing. Any episode can be rated regardless of viewing progress; episode scores never automatically change the overall show score.
+
+The private `episode_ratings` table links each score to its saved TV library entry and TMDB episode identity. Owner policies restrict reads/writes through that entry; removing the show or account cascades to its episode ratings. The server verifies the account and catalogue episode before writing a score, rereads to confirm success, and preserves drafts on failures. Clearing an existing rating works without a catalogue request. `supabase/tests/episode-ratings.sql` passed rolled-back privacy, precision/range, movie rejection, repeat save/update, zero/clear, show-score independence, and removal-cascade checks. Browser checks covered opening the page, seasons/Specials, enabling Save on edits, and draft retention across seasons. The user should verify a real save and refresh; full build and mobile checks remain pending.
+
+Each show can have one favourite episode, selected with a star independently of its rating. Selecting another transfers the star; selecting the current favourite removes it. Private `episode_favourites` storage enforces one selection per saved show and inherits owner access/deletion cleanup through its library entry. The show page displays the favourite and up to three highest-rated episodes below its poster; ties use season and episode order. Episode metadata comes from TMDB, with missing-image/description fallbacks and season/episode labels retained when catalogue loading fails. Favourite changes and episode score changes refresh the show summary.
+
+Favourite SQL checks passed for owner-only access, one selection, transfer/retry, unrated independence, unstar, movie rejection and cascading removal. Metadata tests check safe image paths and missing descriptions. Browser review verified thumbnails, expandable descriptions and the show summary using an existing saved episode score. Actual star/transfer/unstar and saving without a success message remain user walkthrough checks.
+
+### Written reviews
+
+I can write a private review for a movie, show, or individual episode, even when I leave its score blank. Media detail pages have a Your Review section; episode reviews expand below their rows to keep the list compact. The plain-text editor preserves paragraphs, allows up to 10,000 characters, and provides Save Review and Cancel. Clearing the editor and saving removes the review. Save failures preserve the draft, and episode drafts survive season switches within the page; refreshing or leaving still requires saving first. Successful saves show the review without a persistent success notice.
+
+A nullable `review` column on `library_entries` holds the overall review. Separate owner-private `episode_reviews` records hold episode reviews independently of scores or favourite stars. Server actions derive ownership from the live session, validate text, verify new episode references against TMDB, and reread writes before confirming them. Existing episode reviews can be edited or cleared without a catalogue request. Removing the saved title or deleting the account clears its reviews through existing cascades. Apply `supabase/reviews.sql` after the other library/episode schemas.
+
+`supabase/tests/reviews.sql` passed rolled-back checks for media/episode save, edit, clear/retry, size limits, score independence, owner-only access, movie-episode rejection, immutable episode identity, and deletion cascades. Two input tests passed for paragraph/line-ending handling, literal markup, blank clearing, type validation and limits. Focused lint, TypeScript and whitespace checks passed. Browser checks covered media and episode editor opening, Cancel, and episode-draft retention across seasons without saving synthetic opinions. The real save/edit/clear/refresh walkthrough, full build and mobile review remain user checks.

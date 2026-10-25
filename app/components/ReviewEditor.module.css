@@ -1,0 +1,14 @@
+.review { min-width: 0; }
+.text { white-space: pre-wrap; overflow-wrap: anywhere; color: var(--foreground); font-size: 14px; line-height: 1.85; }
+.empty { font-size: 13px; color: var(--muted); line-height: 1.7; }
+.review label { display: block; font-size: 13px; font-weight: 850; margin-bottom: 10px; }
+.review textarea { display: block; width: 100%; min-height: 150px; resize: vertical; background: var(--background); border: 1px solid var(--border); border-radius: 16px; padding: 15px; color: var(--foreground); font: 500 14px/1.8 var(--font-ui); }
+.hint { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 9px; font-size: 11px; color: var(--muted); }
+.actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+.review button { cursor: pointer; border: 1px solid var(--border); border-radius: 999px; padding: 10px 16px; color: var(--foreground); background: transparent; font-size: 12px; font-weight: 850; }
+.review button:hover { background: #ffffff08; }
+.review .primary, .review .edit { color: var(--accent); border-color: #f18c7340; background: #f18c7310; }
+.review .edit { margin-top: 14px; }
+.review button:disabled { opacity: .5; cursor: default; }
+.review textarea:focus-visible, .review button:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.error { color: #ffb5a1; font-size: 12px; line-height: 1.7; margin-top: 12px; }

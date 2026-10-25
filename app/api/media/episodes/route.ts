@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { normalizeEpisodes, normalizeSeasons } from "@/lib/tmdb/episodes";
+import { normalizeEpisodeDetails, normalizeSeasons } from "@/lib/tmdb/episodes";
 
 export async function GET(request: Request) {
   const reply = (body: object, status = 200) => Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
@@ -25,7 +25,7 @@ export async function GET(request: Request) {
       return reply({ seasons: normalizeSeasons(data.seasons) });
     }
     if (!Array.isArray(data.episodes)) return reply({ error: "Couldn’t load episodes. Please try again." }, 502);
-    return reply({ episodes: normalizeEpisodes(data.episodes, Number(season)) });
+    return reply({ episodes: normalizeEpisodeDetails(data.episodes, Number(season)) });
   } catch {
     return reply({ error: "Couldn’t load episode details. Check your connection and try again." }, 503);
   }
