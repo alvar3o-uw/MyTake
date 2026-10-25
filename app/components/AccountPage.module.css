@@ -35,3 +35,9 @@
 .credits p { color: var(--muted); font-size: 13px; line-height: 1.8; margin-top: 16px; }
 .credits a { display: inline-block; }
 .credits a:focus-visible { outline: 2px solid var(--accent); outline-offset: 5px; }
+
+.forgot { align-self: flex-end; margin-top: -8px; font-size: 12px; font-weight: 750; color: var(--accent); text-decoration: none; }
+.forgot:hover { text-decoration: underline; text-underline-offset: 3px; }
+.forgot:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 3px; }
+.recoveryNotice { margin-top: 24px; }
+.recoveryNotice p + p { margin-top: 10px; }

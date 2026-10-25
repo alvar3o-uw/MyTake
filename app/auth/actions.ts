@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { getAuthSiteUrl } from "@/lib/auth/site-url";
 import { createClient } from "@/lib/supabase/server";
 
 export type AuthState = { error?: string; message?: string };
@@ -20,7 +21,7 @@ export async function authenticate(mode: "sign-in" | "sign-up", _previous: AuthS
     if (mode === "sign-up") {
       const { data, error } = await supabase.auth.signUp({
         email, password,
-        options: { emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback` },
+        options: { emailRedirectTo: `${await getAuthSiteUrl()}/auth/callback` },
       });
       if (error) return { error: error.code === "over_email_send_rate_limit" ? "Too many requests. Please try again later." : "We couldn’t create your account. Please try again or sign in if you already have one." };
       if (!data.session) return { message: "Check your email to confirm your account, then sign in." };

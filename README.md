@@ -67,7 +67,9 @@ MyTake runs locally with a public homepage, account pages, and a protected perso
 | --- | --- |
 | `/` | Product introduction, sample collection, and links to Sign In and Sign Up |
 | `/sign-up` | Email/password submission, password confirmation, pending states, and styled confirmation/error messages |
-| `/sign-in` | Email/password submission, pending states, and error messages |
+| `/sign-in` | Email/password submission, pending states, password-recovery link and styled error/success messages |
+| `/forgot-password` | Private reset-email request with neutral account-existence messaging |
+| `/reset-password` | Authenticated new-password/confirmation form and sign-in after reset |
 | `/profile` | Private username/avatar header, manually chosen favourites, highest-rated titles, and movie/TV filters |
 | `/profile/setup` | Username selection after signing in for accounts without a profile |
 | `/settings` | Change your username, return to the library after saving, or permanently delete your account after confirmation |
@@ -246,3 +248,13 @@ Profile Top Seasons links open Seasons & Episodes with that season selected and 
 ### Interface motion
 
 The UI uses short page fades, eased dialog/backdrop entrances, dropdown reveals, poster hover zoom, button press feedback, favourite-star motion, and growing rating-chart bars. Episode descriptions and review editors fade in when opened. Hover effects are limited to devices that support hover, and reduced-motion preferences disable the animation and smooth scrolling. Motion uses CSS without adding dependencies or delaying saves. Browser checks verified the dialog’s 220ms entrance and Cancel, account-menu animation/navigation, and chart animation. Reduced-motion rules are present; a separate device-preference walkthrough remains a user check.
+
+### Password recovery and production authentication
+
+Sign In now includes Forgot Password. The reset request sends a Supabase email without revealing whether the address has an account. Open the latest email in the same browser/device that requested it: this uses Supabase’s existing PKCE flow and default email template. The callback exchanges the one-time code and accepts only the library or reset-form destination; expired/used recovery links show a fresh-request screen. The reset form checks matching passwords with at least eight characters and verifies the live account on the server. Confirmed changes request global sign-out and return to Sign In; failures preserve useful feedback without returning passwords or tokens.
+
+Authentication URLs now come from a validated site-origin helper shared by sign-up and recovery. Development can use the exact approved localhost, 127.0.0.1 and current Wi-Fi addresses. Hosted authentication requires an explicit HTTPS `NEXT_PUBLIC_SITE_URL`, refuses arbitrary request origins, and uses the configured canonical origin for callbacks. Supabase’s local callback allowlist now contains confirmation and recovery callbacks for all three approved local origins; the Site URL remains localhost until the production domain exists. No production URL has been registered yet.
+
+[Deployment and authentication setup](docs/deployment.md) records the exact Vercel environment variables, Supabase Site URL/callback entries, email delivery requirements and release walkthrough. The dashboard currently uses Supabase’s default sender/templates. A custom SMTP sender is needed to deliver confirmation/recovery emails beyond project-team addresses; configuring it requires an email provider and sender details and has not been done here.
+
+Five focused auth tests passed for origin validation, redirect allowlisting, password validation, live-user gating, confirmed update/global sign-out and partial failure reporting. Focused lint, TypeScript and the production build passed. Browser review verified recovery styling; HTTP checks verified invalid-link routing and local-host preservation. No agent-run test changed an actual password. I completed the real recovery email/password-update flow and confirmed sign-in with the new password. Old-password rejection, used-link retry and deployed confirmation/recovery checks remain separate checks. Production URL configuration is pending until Vercel provides the domain.

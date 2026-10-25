@@ -6,7 +6,7 @@ import UiIcon from "./UiIcon";
 import Link from "next/link";
 import styles from "./AccountPage.module.css";
 
-export default function AccountPage({ mode, confirmationFailed = false }: { mode: "sign-in" | "sign-up"; confirmationFailed?: boolean }) {
+export default function AccountPage({ mode, confirmationFailed = false, passwordUpdated = false }: { mode: "sign-in" | "sign-up"; confirmationFailed?: boolean; passwordUpdated?: boolean }) {
   const [state, action, pending] = useActionState<AuthState, FormData>(authenticate.bind(null, mode), {});
   const signingUp = mode === "sign-up";
 
@@ -16,6 +16,7 @@ export default function AccountPage({ mode, confirmationFailed = false }: { mode
       <section className={styles.panel} aria-labelledby="account-heading">
         <h1 id="account-heading">{signingUp ? "Make it your take." : "Welcome back."}</h1>
         <p className={styles.description}>{signingUp ? "A home for your stories and opinions." : "Your next great take starts here."}</p>
+        {passwordUpdated && <div className={`${styles.notice} ${styles.message} ${styles.recoveryNotice}`} role="status"><h2>Password updated</h2><p>Sign in with your new password.</p></div>}
         <form action={action} className={styles.fields}>
           <div className={styles.field}>
             <label htmlFor="email">Email</label>
@@ -25,6 +26,7 @@ export default function AccountPage({ mode, confirmationFailed = false }: { mode
             <label htmlFor="password">Password</label>
             <input id="password" name="password" type="password" required minLength={signingUp ? 8 : undefined} autoComplete={signingUp ? "new-password" : "current-password"} placeholder={signingUp ? "Create a password" : "Enter your password"} />
           </div>
+          {!signingUp && <Link className={styles.forgot} href="/forgot-password">Forgot Password?</Link>}
           {signingUp && (
             <div className={styles.field}>
               <label htmlFor="confirm-password">Re-enter Password</label>
