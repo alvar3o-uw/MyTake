@@ -1,5 +1,5 @@
 // Development origins are exact local addresses, never a production wildcard.
-export const developmentAuthOrigins = ["http://localhost:3000", "http://127.0.0.1:3000", "http://192.168.2.90:3000"];
+export const developmentAuthOrigins = ["http://localhost:3000"];
 
 export function resolveAuthOrigin(configured: string | undefined, requestOrigin: string | null, development: boolean, hosted: boolean): string {
   if (development && requestOrigin && developmentAuthOrigins.includes(requestOrigin)) return requestOrigin;

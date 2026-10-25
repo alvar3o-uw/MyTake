@@ -7,7 +7,7 @@ test('production origins require explicit HTTPS and never trust arbitrary reques
   assert.equal(resolveAuthOrigin('https://mytake.example/', 'https://mytake.example', false, true), 'https://mytake.example');
   for (const configured of [undefined, 'http://localhost:3000', 'http://mytake.example', 'https://mytake.example/path', 'https://user:pass@mytake.example', 'https://mytake.example?next=bad']) assert.throws(() => resolveAuthOrigin(configured, null, false, true));
   assert.throws(() => resolveAuthOrigin('https://mytake.example', 'https://attacker.example', false, true));
-  assert.equal(resolveAuthOrigin('http://localhost:3000', 'http://127.0.0.1:3000', true, false), 'http://127.0.0.1:3000');
+  assert.equal(resolveAuthOrigin('http://localhost:3000', 'http://127.0.0.1:3000', true, false), 'http://localhost:3000');
   assert.equal(resolveAuthOrigin('http://localhost:3000', 'https://attacker.example', true, false), 'http://localhost:3000');
 });
 test('callback destinations allow only the library and reset form', () => {

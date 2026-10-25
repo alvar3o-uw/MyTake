@@ -2,7 +2,7 @@
 
 A personal home for the media I watch and the opinions I form along the way.
 
-[Open MyTake](https://my-take-seven.vercel.app)
+[Open MyTake](https://usemytake.vercel.app)
 
 ## Why I'm building this
 
@@ -29,7 +29,7 @@ Folders are outside the MVP. Ratings use a 0–10 scale in steps of 0.1. Categor
 
 ## Tech stack
 
-The website is being built with TypeScript, React, Next.js, and CSS Modules. Supabase Auth, profiles, and private library storage are connected. The website is deployed on Vercel at [my-take-seven.vercel.app](https://my-take-seven.vercel.app).
+The website is being built with TypeScript, React, Next.js, and CSS Modules. Supabase Auth, profiles, and private library storage are connected. The website is deployed on Vercel at [usemytake.vercel.app](https://usemytake.vercel.app).
 
 | Technology | Purpose | Status |
 | --- | --- | --- |
@@ -61,7 +61,7 @@ I want to release a mobile app on the App Store after the website is useful. The
 
 Manga, novels, and ways to share ratings with other people may come later. For now, the priority is getting the core personal tracking experience right.
 
-## Current status
+## Current status — MyTake v1
 
 MyTake runs locally and on Vercel with a public homepage, account pages, and a protected personal library. The design uses a single dark theme, coral accents, rounded controls, and consistent line icons. Locally hosted Nunito gives the interface a playful, rounded feel, while the serif wordmark stays distinct. The font and its SIL Open Font License are in `app/fonts/`. The coral exclamation mark from the `mytake!` wordmark also serves as the browser-tab icon on a charcoal background; the rest of the interface is kept clean. Profiles use unique usernames and an initials avatar.
 
@@ -107,7 +107,7 @@ Supabase handles email/password authentication. Sign-up checks that passwords ma
 
 Profiles are stored in Supabase PostgreSQL, separately from authentication credentials. Each profile links its account ID to a unique username: 3–20 lowercase letters, numbers, or underscores. Database constraints enforce these rules, and row-level security restricts profile reads and changes to the account owner. No timestamp field is used.
 
-After signing in, accounts without a profile choose a username before entering the library. The initials avatar opens a dropdown with the username, Settings, and Sign Out. Settings saves username changes to the database and returns to My Library with a confirmation that disappears after three seconds. Settings also includes permanent account deletion behind a confirmation dialog. Profile pictures are not uploaded yet.
+After signing in, accounts without a profile choose a username before entering the library. The initials avatar opens a dropdown with the username, Settings, and Sign Out. Settings saves username changes to the database and returns to My Library with a confirmation that disappears after three seconds. Settings also includes permanent account deletion behind a confirmation dialog. The dedicated support sender uses the MyTake `!` as its Google profile image; user avatars remain initials-based for now.
 
 ### Catalogue direction
 
@@ -118,9 +118,7 @@ Catalogue information and personal opinions have separate responsibilities: TMDB
 ### Still to build
 
 - Arc-level ratings.
-- Profile picture uploads.
 - Further episode browsing refinements; arc ratings remain planned.
-- Custom email delivery and production confirmation/recovery testing before public registration.
 - The later mobile interface.
 
 ### Verification
@@ -131,7 +129,7 @@ Focused ESLint and TypeScript checks passed for edit/remove changes, and I subse
 
 Live authentication checks covered invalid credentials, password mismatch rejection, and signed-out redirects. I completed sign-up and email confirmation, reached My Library, and verified signing out and signing back in. I also verified username setup and the account dropdown, and tested account deletion with a disposable account successfully.
 
-Desktop layouts have been visually reviewed, and I checked the app on my phone and confirmed it looks good. The website has not been deployed; the account-deletion backend function is deployed in Supabase.
+Desktop layouts have been visually reviewed, and I checked the app on my phone and confirmed it looks good. The website is deployed at [usemytake.vercel.app](https://usemytake.vercel.app); the account-deletion backend function is deployed in Supabase.
 
 ## Run locally
 
@@ -256,8 +254,8 @@ The UI uses short page fades, eased dialog/backdrop entrances, dropdown reveals,
 
 Sign In now includes Forgot Password. The reset request sends a Supabase email without revealing whether the address has an account. Open the latest email in the same browser/device that requested it: this uses Supabase’s existing PKCE flow and default email template. The callback exchanges the one-time code and accepts only the library or reset-form destination; expired/used recovery links show a fresh-request screen. The reset form checks matching passwords with at least eight characters and verifies the live account on the server. Confirmed changes request global sign-out and return to Sign In; failures preserve useful feedback without returning passwords or tokens.
 
-Authentication URLs now come from a validated site-origin helper shared by sign-up and recovery. Development can use the exact approved localhost, 127.0.0.1 and current Wi-Fi addresses. Hosted authentication requires an explicit HTTPS `NEXT_PUBLIC_SITE_URL`, refuses arbitrary request origins, and uses the configured canonical origin for callbacks. Supabase’s local callback allowlist now contains confirmation and recovery callbacks for all three approved local origins; the Site URL is now `https://my-take-seven.vercel.app`, with exact production confirmation and recovery callbacks saved alongside the six local callbacks.
+Authentication URLs now come from a validated site-origin helper shared by sign-up and recovery. Development uses `http://localhost:3000` as its single supported local authentication origin. Hosted authentication requires an explicit HTTPS `NEXT_PUBLIC_SITE_URL`, refuses arbitrary request origins, and uses the configured canonical origin for callbacks. Supabase’s local callback allowlist contains confirmation and recovery callbacks for localhost; the Site URL is now `https://usemytake.vercel.app`, with exact production confirmation and recovery callbacks saved alongside the two localhost callbacks.
 
-[Deployment and authentication setup](docs/deployment.md) records the exact Vercel environment variables, Supabase Site URL/callback entries, email delivery requirements and release walkthrough. The dashboard currently uses Supabase’s default sender/templates. A custom SMTP sender is needed to deliver confirmation/recovery emails beyond project-team addresses; configuring it requires an email provider and sender details and has not been done here.
+[Deployment and authentication setup](docs/deployment.md) records the exact Vercel environment variables, Supabase Site URL/callback entries, Gmail SMTP configuration, and release walkthrough. Supabase now sends confirmation and recovery emails through the dedicated `mytakesupport@gmail.com` account using an encrypted Gmail app password. The sender name is `MyTake`.
 
-Five focused auth tests passed for origin validation, redirect allowlisting, password validation, live-user gating, confirmed update/global sign-out and partial failure reporting. Focused lint, TypeScript and the production build passed. Browser review verified recovery styling; HTTP checks verified invalid-link routing and local-host preservation. No agent-run test changed an actual password. I completed the real recovery email/password-update flow and confirmed sign-in with the new password. Old-password rejection, used-link retry and deployed confirmation/recovery checks remain separate checks. Vercel successfully built and deployed commit `f85f1b6`. The live homepage and sign-in form were checked, and I confirmed the deployed app works after signing in. Production email confirmation/recovery remains to be tested after custom SMTP setup.
+Five focused auth tests passed for origin validation, redirect allowlisting, password validation, live-user gating, confirmed update/global sign-out and partial failure reporting. Focused lint, TypeScript and the production build passed. Browser review verified recovery styling; HTTP checks verified invalid-link routing and local-host preservation. No agent-run test changed an actual password. I completed the real recovery email/password-update flow and confirmed sign-in with the new password. The deployed production flow was also tested: a password-recovery email arrived from MyTake after Gmail SMTP was enabled. Vercel successfully built and deployed the v1 application, and the live homepage, sign-in, account confirmation, and recovery flows were checked.
