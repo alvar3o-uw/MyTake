@@ -23,6 +23,7 @@ export async function saveMediaReview(entryId: string, input: unknown): Promise<
     const check = await supabase.from("library_entries").select("review").eq("id", entryId).eq("user_id", user.id).single();
     if (check.error || check.data.review !== parsed.review) return { error: "Couldn’t confirm your review. Try again or refresh to check." };
     revalidatePath("/media/[type]/[id]", "page");
+    revalidatePath("/profile");
     return { review: check.data.review };
   } catch { return { error: "Couldn’t confirm your review. Your draft is still here; try again or refresh." }; }
 }
@@ -58,6 +59,7 @@ export async function saveEpisodeReview(entryId: string, episode: EpisodeProgres
     const check = await supabase.from("episode_reviews").select("review").eq("entry_id", entryId).eq("episode_id", episode.episodeId).maybeSingle();
     if (check.error || (check.data?.review ?? null) !== parsed.review) return { error: "Couldn’t confirm your review. Try again or refresh to check." };
     revalidatePath(`/media/tv/${showId}/episodes`);
+    revalidatePath("/profile");
     return { review: check.data?.review ?? null };
   } catch { return { error: "Couldn’t confirm your review. Your draft is still here; try again or refresh." }; }
 }

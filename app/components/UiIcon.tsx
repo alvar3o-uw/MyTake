@@ -1,4 +1,6 @@
 const paths = {
+  profile: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M4 21v-2a8 8 0 0 1 16 0v2",
+  star: "m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z",
   allMedia: "M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z",
   books: "M3 4h5v16H3z M3 7h5 M3 17h5 M10 4h4v16h-4z M10 7h4 M10 17h4 M16 5l4-1 3 15-4 1z M17 8l4-1 M19 17l3-1",
   movie: "M4 3h16v18H4z M4 8h16 M4 16h16 M8 3v5 M16 3v5 M8 16v5 M16 16v5",

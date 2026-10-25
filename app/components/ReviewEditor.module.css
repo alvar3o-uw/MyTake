@@ -12,3 +12,8 @@
 .review button:disabled { opacity: .5; cursor: default; }
 .review textarea:focus-visible, .review button:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 .error { color: #ffb5a1; font-size: 12px; line-height: 1.7; margin-top: 12px; }
+
+@keyframes editorIn { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: no-preference) {
+  .review form { animation: editorIn var(--motion-normal) ease-out; }
+}

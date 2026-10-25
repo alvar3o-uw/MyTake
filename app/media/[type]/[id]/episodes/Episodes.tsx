@@ -9,12 +9,14 @@ import { saveEpisodeReview } from "@/app/reviews/actions";
 import CollectionHeader from "@/app/components/CollectionHeader";
 import archive from "@/app/library/page.module.css";
 import { saveEpisodeRating, setFavouriteEpisode } from "./actions";
+import SeasonRating from "./SeasonRating";
 import styles from "./page.module.css";
 
 type Items<T> = { items: T[]; loading?: boolean; error?: string };
-export default function Episodes({ username, entryId, showId, title, initialRatings, backHref, initialFavouriteId, initialReviews }: {
-  initialReviews: Record<string, string>; initialFavouriteId: number | null; username: string; entryId: string; showId: number; title: string; initialRatings: Record<string, number>; backHref: string;
+export default function Episodes({ username, entryId, showId, title, initialRatings, backHref, initialFavouriteId, initialReviews, initialSeasonRatings, requestedSeason, requestedEpisode }: {
+  requestedSeason: number | null; requestedEpisode: number | null; initialSeasonRatings: Record<string, number>; initialReviews: Record<string, string>; initialFavouriteId: number | null; username: string; entryId: string; showId: number; title: string; initialRatings: Record<string, number>; backHref: string;
 }) {
+  const locationHandled = useRef(false);
   const [seasons, setSeasons] = useState<Items<SeasonOption>>({ items: [], loading: true });
   const [season, setSeason] = useState("");
   const [episodes, setEpisodes] = useState<Items<EpisodeDetails>>({ items: [] });
@@ -23,6 +25,8 @@ export default function Episodes({ username, entryId, showId, title, initialRati
   const [favouriteId, setFavouriteId] = useState(initialFavouriteId);
   const [reviews, setReviews] = useState(initialReviews);
   const [reviewDrafts, setReviewDrafts] = useState<Record<string, string>>({});
+  const [seasonRatings, setSeasonRatings] = useState(initialSeasonRatings);
+  const [seasonDrafts, setSeasonDrafts] = useState<Record<string, string>>({});
   const [ratings, setRatings] = useState(initialRatings);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [messages, setMessages] = useState<Record<string, { text: string; error?: boolean }>>({});
@@ -37,13 +41,13 @@ export default function Episodes({ username, entryId, showId, title, initialRati
         if (!response.ok) throw new Error(data.error || "Couldn’t load seasons.");
         if (!controller.signal.aborted) {
           setSeasons({ items: data.seasons });
-          const first = data.seasons.find((item: SeasonOption) => item.number > 0) ?? data.seasons[0];
+          const first = data.seasons.find((item: SeasonOption) => item.number === requestedSeason) ?? data.seasons.find((item: SeasonOption) => item.number > 0) ?? data.seasons[0];
           if (first) { setSeason(String(first.number)); setEpisodes({ items: [], loading: true }); }
         }
       } catch (error) { if (!controller.signal.aborted) setSeasons({ items: [], error: error instanceof Error ? error.message : "Couldn’t load seasons." }); }
     })();
     return () => controller.abort();
-  }, [showId, seasonRetry]);
+  }, [showId, seasonRetry, requestedSeason]);
   useEffect(() => {
     if (season === "") return;
     const controller = new AbortController();
@@ -57,6 +61,15 @@ export default function Episodes({ username, entryId, showId, title, initialRati
     })();
     return () => controller.abort();
   }, [showId, season, episodeRetry]);
+
+  useEffect(() => {
+    if (locationHandled.current || requestedSeason === null || season !== String(requestedSeason) || episodes.loading || episodes.error) return;
+    const target = document.getElementById(requestedEpisode === null ? "season-rating" : `episode-${requestedEpisode}`);
+    if (!target) return;
+    target.focus({ preventScroll: true });
+    target.scrollIntoView({ block: requestedEpisode === null ? "start" : "center" });
+    locationHandled.current = true;
+  }, [season, episodes.items, episodes.loading, episodes.error, requestedSeason, requestedEpisode]);
 
   async function save(episode: EpisodeDetails, draft: string) {
     if (pendingRef.current) return;
@@ -91,6 +104,10 @@ export default function Episodes({ username, entryId, showId, title, initialRati
       <div className={styles.heading}><div><p className={styles.eyebrow}>{title}</p><h1>Episodes</h1></div>
         {seasons.items.length > 0 && <div className={styles.season}><label htmlFor="episode-season">Season</label><select id="episode-season" value={season} disabled={pending !== null} onChange={event => { setSeason(event.target.value); setEpisodes({ items: [], loading: true }); }}>{seasons.items.map(item => <option key={item.number} value={item.number}>{item.number === 0 ? "Specials" : item.name}</option>)}</select></div>}
       </div>
+      {season !== "" && <SeasonRating key={season} entryId={entryId} season={Number(season)} name={seasons.items.find(item => String(item.number) === season)?.name ?? `Season ${season}`} rating={seasonRatings[season] ?? null} draft={seasonDrafts[season] ?? (seasonRatings[season] === undefined ? "" : String(seasonRatings[season]))} disabled={pending !== null}
+        onDraftChange={draft => setSeasonDrafts(previous => ({ ...previous, [season]: draft }))}
+        onSaved={rating => { setSeasonRatings(previous => { const next = { ...previous }; if (rating === null) delete next[season]; else next[season] = rating; return next; }); setSeasonDrafts(previous => ({ ...previous, [season]: rating === null ? "" : String(rating) })); }}
+        onPendingChange={saving => { pendingRef.current = saving; setPending(saving ? -1 : null); }} />}
       <p className={styles.help}>Your take on each episode. Leave a rating blank to clear it; 0 is a score.</p>
       {seasons.loading && <p role="status" className={styles.feedback}>Loading seasons…</p>}
       {seasons.error && <div role="alert" className={styles.feedback}>{seasons.error} <button type="button" onClick={() => { setSeasons({ items: [], loading: true }); setSeasonRetry(value => value + 1); }}>Try Again</button></div>}
@@ -98,6 +115,8 @@ export default function Episodes({ username, entryId, showId, title, initialRati
       {episodes.loading && <p role="status" className={styles.feedback}>Loading episodes…</p>}
       {episodes.error && <div role="alert" className={styles.feedback}>{episodes.error} <button type="button" onClick={() => { setEpisodes({ items: [], loading: true }); setEpisodeRetry(value => value + 1); }}>Try Again</button></div>}
       {season !== "" && !episodes.loading && !episodes.error && episodes.items.length === 0 && <p className={styles.feedback}>No episodes are available for this season.</p>}
+      {requestedSeason !== null && !seasons.loading && !seasons.error && !seasons.items.some(item => item.number === requestedSeason) && <p className={styles.feedback} role="status">That season is no longer available. Choose another season above.</p>}
+      {requestedEpisode !== null && season === String(requestedSeason) && !episodes.loading && !episodes.error && !episodes.items.some(item => item.episodeId === requestedEpisode) && <p className={styles.feedback} role="status">That episode is no longer listed in this season.</p>}
       <ol className={styles.list}>
         {episodes.items.map(episode => {
           const id = episode.episodeId;
@@ -105,7 +124,7 @@ export default function Episodes({ username, entryId, showId, title, initialRati
           const draft = drafts[id] ?? saved;
           const dirty = draft !== saved;
           const message = messages[id];
-          return <li key={id}><form className={styles.row} onSubmit={event => { event.preventDefault(); void save(episode, draft); }}>
+          return <li key={id} id={`episode-${id}`} tabIndex={-1} className={styles.episodeTarget}><form className={styles.row} onSubmit={event => { event.preventDefault(); void save(episode, draft); }}>
             <div className={styles.episodeInfo}>
               {episode.stillPath ? <Image className={styles.thumbnail} src={`https://image.tmdb.org/t/p/w300${episode.stillPath}`} width={128} height={72} alt="" unoptimized /> : <div className={`${styles.thumbnail} ${styles.noImage}`} aria-hidden="true">E{episode.episodeNumber}</div>}
               <div><div className={styles.name}><span className={styles.number}>E{String(episode.episodeNumber).padStart(2, "0")}</span><h2>{episode.episodeName || `Episode ${episode.episodeNumber}`}</h2></div>

@@ -13,3 +13,35 @@ body { min-height: 100vh; color: var(--foreground); background: var(--background
 button, input, select, textarea { font-family: inherit; }
 button:disabled { opacity: 1; cursor: default; }
 ::selection { background: #8e493b; color: #fff; }
+
+:root {
+  --motion-fast: 140ms;
+  --motion-normal: 220ms;
+  --motion-ease: cubic-bezier(.2, .8, .2, 1);
+}
+button, a, summary, input, select, textarea {
+  transition: color var(--motion-fast) ease, background-color var(--motion-fast) ease,
+    border-color var(--motion-fast) ease, box-shadow var(--motion-normal) ease,
+    opacity var(--motion-fast) ease, scale var(--motion-fast) var(--motion-ease);
+}
+@keyframes mytake-page-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes mytake-dialog-in {
+  from { opacity: 0; transform: translateY(10px) scale(.985); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes mytake-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+  main { animation: mytake-page-in var(--motion-normal) ease-out; }
+  dialog[open] { animation: mytake-dialog-in var(--motion-normal) var(--motion-ease); }
+  dialog[open]::backdrop { animation: mytake-backdrop-in 180ms ease-out; }
+  button:not(:disabled):active { scale: .98; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

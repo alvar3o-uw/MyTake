@@ -59,3 +59,27 @@
 .episodeReview[open] > summary { color: var(--accent); }
 .episodeReview > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .reviewBody { padding: 8px 16px 18px; }
+
+.seasonRating { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 24px; padding: 18px 20px; background: linear-gradient(135deg, #f18c730c, var(--surface)); border: 1px solid var(--border); border-radius: 20px; }
+.seasonRating h2 { font-size: 16px; font-weight: 900; }
+.seasonRating p { color: var(--muted); font-size: 12px; margin-top: 5px; }
+.seasonRating .seasonHelp { flex-basis: 100%; color: var(--muted); font-size: 11px; }
+.seasonRating .error { color: #ffb5a1; flex-basis: 100%; }
+@media(max-width: 450px) { .seasonRating { padding: 16px; }.seasonRating .controls { width: 100%; flex-wrap: wrap; justify-content: space-between; } }
+
+.episodeTarget, .seasonRating { scroll-margin-top: 24px; }
+.episodeTarget:focus { outline: none; }
+.episodeTarget:focus > .row, .episodeTarget:target > .row { border-color: var(--accent); }
+.seasonRating:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+@keyframes reveal { from { opacity: 0; } to { opacity: 1; } }
+@keyframes starIn { 0% { transform: scale(.8); } 60% { transform: scale(1.15); } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: no-preference) {
+  .row { animation: reveal 200ms ease-out; transition: border-color var(--motion-normal) ease, background-color var(--motion-normal) ease; }
+  .description[open] > p, .episodeReview[open] > .reviewBody { animation: reveal var(--motion-normal) ease-out; }
+  .controls .star svg { transition: color var(--motion-fast) ease; }
+  .controls .starred svg { animation: starIn 260ms var(--motion-ease); }
+}
+@media (hover: hover) {
+  .row:hover { border-color: #ffffff30; }
+}

@@ -8,4 +8,4 @@ export type NewEntry = MediaResult & {
   progress?: EpisodeProgress;
 };
 
-export type LibraryEntry = NewEntry & { id: string };
+export type LibraryEntry = NewEntry & { id: string; isFavourite?: boolean };

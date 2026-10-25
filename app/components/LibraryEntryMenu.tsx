@@ -1,16 +1,19 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { removeLibraryEntry } from "../library/actions";
+import { removeLibraryEntry, setTitleFavourite } from "../library/actions";
 import type { LibraryEntry } from "../types";
 import EditEntryDialog from "./EditEntryDialog";
 import UiIcon from "./UiIcon";
 import styles from "./LibraryEntryMenu.module.css";
 
-export default function LibraryEntryMenu({ entry, onRemoved, onUpdated }: {
-  entry: LibraryEntry; onRemoved: (entryId: string) => void; onUpdated: (entry: LibraryEntry) => void;
+export default function LibraryEntryMenu({ entry, onRemoved, onUpdated, compact = false }: {
+  compact?: boolean; entry: LibraryEntry; onRemoved: (entryId: string) => void; onUpdated: (entry: LibraryEntry) => void;
 }) {
   const { id: entryId, title } = entry;
+  const [panelPosition, setPanelPosition] = useState<{ left: number; top: number } | undefined>();
+  const [favouritePending, setFavouritePending] = useState(false);
+  const [favouriteError, setFavouriteError] = useState("");
   const [editing, setEditing] = useState(false);
   const menu = useRef<HTMLDetailsElement>(null);
   const trigger = useRef<HTMLElement>(null);
@@ -31,13 +34,18 @@ export default function LibraryEntryMenu({ entry, onRemoved, onUpdated }: {
         trigger.current?.focus();
       }
     }
+    function closeOnScroll() { if (compact && menu.current) menu.current.open = false; }
+    window.addEventListener("scroll", closeOnScroll);
+    window.addEventListener("resize", closeOnScroll);
     document.addEventListener("pointerdown", closeOutside);
     document.addEventListener("keydown", closeOnEscape);
     return () => {
+      window.removeEventListener("scroll", closeOnScroll);
+      window.removeEventListener("resize", closeOnScroll);
       document.removeEventListener("pointerdown", closeOutside);
       document.removeEventListener("keydown", closeOnEscape);
     };
-  }, []);
+  }, [compact]);
 
   useEffect(() => { if (error) errorRef.current?.focus(); }, [error]);
 
@@ -61,13 +69,32 @@ export default function LibraryEntryMenu({ entry, onRemoved, onUpdated }: {
   }
 
   return <>
-    <details className={styles.menu} ref={menu}>
+    <details className={styles.menu} ref={menu} onToggle={event => {
+      if (compact && event.currentTarget.open) {
+        const rect = trigger.current?.getBoundingClientRect();
+        if (rect) setPanelPosition({ left: Math.max(12, Math.min(rect.right - 210, window.innerWidth - 222)), top: Math.max(12, Math.min(rect.bottom + 8, window.innerHeight - 210)) });
+      }
+    }}>
       <summary ref={trigger} aria-label={`Options for ${title}`}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg>
       </summary>
-      <div className={styles.panel}>
-        <button type="button" className={styles.edit} aria-haspopup="dialog" onClick={() => { if (menu.current) menu.current.open = false; setEditing(true); }}><UiIcon name="edit" />Edit Entry</button>
-        <button type="button" aria-haspopup="dialog" onClick={() => { if (menu.current) menu.current.open = false; setError(""); dialog.current?.showModal(); }}><UiIcon name="trash" />Remove from Library</button>
+      <div className={styles.panel} style={compact && panelPosition ? { position: "fixed", ...panelPosition, right: "auto", maxHeight: "calc(100vh - 24px)", overflowY: "auto" } : undefined}>
+        <button type="button" className={styles.edit} disabled={favouritePending || pending} aria-pressed={Boolean(entry.isFavourite)} onClick={async () => {
+          if (pendingRef.current) return;
+          pendingRef.current = true; setFavouritePending(true); setFavouriteError("");
+          try {
+            const result = await setTitleFavourite(entryId, !entry.isFavourite);
+            if (result.error) { setFavouriteError(result.error); if (menu.current) menu.current.open = true; return; }
+            if (!result.entry) { setFavouriteError("Couldn’t confirm your favourite. Please refresh to check."); return; }
+            onUpdated(result.entry);
+            if (menu.current) menu.current.open = false;
+            trigger.current?.focus();
+          } catch { setFavouriteError("Couldn’t confirm your favourite. Try again or refresh."); if (menu.current) menu.current.open = true; }
+          finally { pendingRef.current = false; setFavouritePending(false); }
+        }}><UiIcon name="star" className={entry.isFavourite ? styles.filledStar : undefined} />{favouritePending ? "Updating…" : entry.isFavourite ? "Remove from Favourites" : "Add to Favourites"}</button>
+        {favouriteError && <p className={styles.menuError} role="alert">{favouriteError}</p>}
+        <button type="button" className={styles.edit} disabled={favouritePending || pending} aria-haspopup="dialog" onClick={() => { if (menu.current) menu.current.open = false; setEditing(true); }}><UiIcon name="edit" />Edit Entry</button>
+        <button type="button" disabled={favouritePending || pending} aria-haspopup="dialog" onClick={() => { if (menu.current) menu.current.open = false; setError(""); dialog.current?.showModal(); }}><UiIcon name="trash" />Remove from Library</button>
       </div>
     </details>
     {editing && <EditEntryDialog entry={entry} onSaved={onUpdated} onClose={() => { setEditing(false); trigger.current?.focus(); }} />}

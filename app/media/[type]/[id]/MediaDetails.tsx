@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import type { SeasonHighlight } from "@/lib/episodes/season-rating";
 import type { EpisodeHighlight } from "@/lib/episodes/highlights";
 import type { LibraryEntry } from "@/app/types";
 import { posterUrl } from "@/lib/tmdb/media";
@@ -16,9 +17,9 @@ import UiIcon from "@/app/components/UiIcon";
 import archive from "@/app/library/page.module.css";
 import styles from "./page.module.css";
 
-export default function MediaDetails({ username, initialEntry, overview, genres, runtime, catalogueUnavailable, backHref, topEpisodes, favouriteEpisode, highlightsUnavailable, initialReview }: {
+export default function MediaDetails({ username, initialEntry, overview, genres, runtime, catalogueUnavailable, backHref, topEpisodes, favouriteEpisode, highlightsUnavailable, initialReview, topSeason, topSeasonUnavailable, showTopSeason }: {
   username: string; initialEntry: LibraryEntry; overview: string; genres: string[];
-  initialReview: string | null; topEpisodes: EpisodeHighlight[]; favouriteEpisode: EpisodeHighlight | null; highlightsUnavailable: boolean;
+  showTopSeason: boolean; topSeason: SeasonHighlight | null; topSeasonUnavailable: boolean; initialReview: string | null; topEpisodes: EpisodeHighlight[]; favouriteEpisode: EpisodeHighlight | null; highlightsUnavailable: boolean;
   runtime: number | null; catalogueUnavailable: boolean; backHref: string;
 }) {
   const [entry, setEntry] = useState(initialEntry);
@@ -35,6 +36,9 @@ export default function MediaDetails({ username, initialEntry, overview, genres,
           {entry.posterPath ? <Image src={posterUrl(entry.posterPath, "w500")} alt={`${entry.title} poster`} fill sizes="(max-width: 600px) 55vw, 300px" unoptimized loading="eager" style={{ objectFit: "cover" }} /> : <span>{entry.title}</span>}
         </div>
         {entry.mediaType === "tv" && <div className={styles.highlights}>
+          {showTopSeason && <section aria-labelledby="top-season"><h2 id="top-season">Your Top Season</h2>
+            {topSeasonUnavailable ? <p role="status">Couldn’t load your top season. <button type="button" onClick={() => router.refresh()}>Try Again</button></p> : topSeason ? <div className={styles.highlight}><div><small>{topSeason.number === 0 ? "Specials" : `Season ${topSeason.number}`}</small><h3>{topSeason.name}</h3></div><strong>{topSeason.rating}<small>/10</small></strong></div> : <p>Rate a season to see your top pick here.</p>}
+          </section>}
           {highlightsUnavailable ? <p role="status">Couldn’t load your episode picks. <button type="button" onClick={() => router.refresh()}>Try Again</button></p> : <>
             <section aria-labelledby="favourite-episode"><h2 id="favourite-episode"><span aria-hidden="true">★</span> Your Favourite Episode</h2>
               {favouriteEpisode ? <Highlight episode={favouriteEpisode} /> : <p>Star an episode to choose your favourite.</p>}
@@ -55,7 +59,7 @@ export default function MediaDetails({ username, initialEntry, overview, genres,
             <p className={styles.status}>{progressLabel(entry.status, entry.progress)}</p>
             {entry.progress && <p className={styles.episode}>{entry.progress.episodeName}</p>}
           </section>
-          {entry.mediaType === "tv" && <Link className={styles.episodesLink} href={`/media/tv/${entry.tmdbId}/episodes${backHref.includes("?") ? backHref.slice(backHref.indexOf("?")) : ""}`}>Episodes <span aria-hidden="true">→</span></Link>}
+          {entry.mediaType === "tv" && <Link className={styles.episodesLink} href={`/media/tv/${entry.tmdbId}/episodes${backHref.includes("?") ? backHref.slice(backHref.indexOf("?")) : ""}`}>Seasons &amp; Episodes <span aria-hidden="true">→</span></Link>}
           <section className={styles.writtenReview} aria-labelledby="written-review"><h2 id="written-review">Your Review</h2><ReviewEditor initialReview={initialReview} label={`Your review of ${entry.title}`} onSave={draft => saveMediaReview(entry.id, draft)} /></section>
           <section className={styles.synopsis} aria-labelledby="synopsis"><h2 id="synopsis">Synopsis</h2>
             {catalogueUnavailable ? <div role="status"><p>Couldn’t load the synopsis right now. Your saved take is still here.</p><button type="button" onClick={() => router.refresh()}>Try Again</button></div> : <p>{overview || "No synopsis available for this title."}</p>}

@@ -105,6 +105,7 @@ export async function moveWatchlistEntry(entryId: string, changes: Pick<SaveLibr
             return { error: "Couldn’t check your library. Please try again." };
         if (moved.data) {
             revalidatePath("/library");
+        revalidatePath("/profile");
             revalidatePath("/watchlist");
             return { entry: toLibraryEntry(moved.data as unknown as LibraryRecord) };
         }
@@ -130,6 +131,7 @@ export async function moveWatchlistEntry(entryId: string, changes: Pick<SaveLibr
         if (saved.error || !saved.data)
             return { error: "The title may have moved. Try again or refresh both lists to check." };
         revalidatePath("/library");
+        revalidatePath("/profile");
         revalidatePath("/watchlist");
         return { entry: toLibraryEntry(saved.data as unknown as LibraryRecord) };
     }

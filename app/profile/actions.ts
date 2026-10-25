@@ -27,5 +27,6 @@ export async function saveProfile(mode: "setup" | "settings", _previous: Profile
   }
   revalidatePath("/library", "layout");
   revalidatePath("/settings");
+  revalidatePath("/profile");
   redirect(mode === "setup" ? "/library" : "/library?profile=updated");
 }

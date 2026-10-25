@@ -4,7 +4,7 @@ import UiIcon from "./UiIcon";
 import styles from "../library/page.module.css";
 export default function CollectionHeader({ username, active }: {
     username: string;
-    active: "library" | "watchlist";
+    active: "library" | "watchlist" | "profile";
 }) {
     return <header className={styles.header}>
     <Link href="/library" className={styles.wordmark} aria-label="MyTake — My Library">mytake<span>!</span></Link>

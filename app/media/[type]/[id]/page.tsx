@@ -1,7 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 import { getOwnProfile } from "@/lib/profiles/server";
 import { librarySelection, toLibraryEntry, type LibraryRecord } from "@/lib/library/records";
-import { normalizeEpisodeDetails } from "@/lib/tmdb/episodes";
+import { normalizeEpisodeDetails, normalizeSeasons } from "@/lib/tmdb/episodes";
+import type { SeasonHighlight } from "@/lib/episodes/season-rating";
 import type { EpisodeHighlight } from "@/lib/episodes/highlights";
 import MediaDetails from "./MediaDetails";
 
@@ -22,6 +23,7 @@ export default async function MediaPage({ params, searchParams }: {
   let genres: string[] = [];
   let runtime: number | null = null;
   let catalogueUnavailable = false;
+  let seasonNames = new Map<number, string>();
   try {
     const token = process.env.TMDB_READ_ACCESS_TOKEN;
     if (!token) throw new Error("Catalogue unavailable");
@@ -32,18 +34,24 @@ export default async function MediaPage({ params, searchParams }: {
     if (!response.ok) throw new Error("Catalogue unavailable");
     const details = await response.json();
     if (details.id !== Number(id)) throw new Error("Unexpected catalogue result");
+    if (type === "tv") seasonNames = new Map(normalizeSeasons(details.seasons).map(season => [season.number, season.name]));
     overview = typeof details.overview === "string" ? details.overview.trim() : "";
     genres = Array.isArray(details.genres) ? details.genres.flatMap((genre: { name?: unknown } | null) => genre && typeof genre.name === "string" ? [genre.name] : []) : [];
     runtime = type === "movie" && Number.isInteger(details.runtime) && details.runtime > 0 ? details.runtime : null;
   } catch { catalogueUnavailable = true; }
+  let topSeason: SeasonHighlight | null = null;
+  let topSeasonUnavailable = false;
   let topEpisodes: EpisodeHighlight[] = [];
   let favouriteEpisode: EpisodeHighlight | null = null;
   let highlightsUnavailable = false;
   if (type === "tv") {
-    const [top, favourite] = await Promise.all([
+    const [top, favourite, season] = await Promise.all([
       supabase.from("episode_ratings").select("episode_id,season_number,episode_number,rating").eq("entry_id", entry.id).order("rating", { ascending: false }).order("season_number").order("episode_number").limit(3),
       supabase.from("episode_favourites").select("episode_id,season_number,episode_number").eq("entry_id", entry.id).maybeSingle(),
+      supabase.from("season_ratings").select("season_number,rating").eq("entry_id", entry.id).order("rating", { ascending: false }).order("season_number").limit(1).maybeSingle(),
     ]);
+    topSeasonUnavailable = Boolean(season.error);
+    if (season.data) topSeason = { number: season.data.season_number, name: seasonNames.get(season.data.season_number) ?? (season.data.season_number === 0 ? "Specials" : `Season ${season.data.season_number}`), rating: Number(season.data.rating) };
     highlightsUnavailable = Boolean(top.error || favourite.error);
     if (!highlightsUnavailable) {
       const rows = [...(top.data ?? []), ...(favourite.data ? [favourite.data] : [])];
@@ -75,5 +83,5 @@ export default async function MediaPage({ params, searchParams }: {
   const back = new URLSearchParams();
   if (query.filter === "movie" || query.filter === "tv") back.set("filter", query.filter);
   if (["ascending", "alphabetical", "alphabetical-reverse"].includes(query.order ?? "")) back.set("order", query.order!);
-  return <MediaDetails initialReview={(data as unknown as { review: string | null }).review} topEpisodes={topEpisodes} favouriteEpisode={favouriteEpisode} highlightsUnavailable={highlightsUnavailable} key={entry.id} username={profile.username} initialEntry={entry} overview={overview} genres={genres} runtime={runtime} catalogueUnavailable={catalogueUnavailable} backHref={`/library${back.size ? `?${back}` : ""}`} />;
+  return <MediaDetails showTopSeason={[...seasonNames.keys()].filter(number => number > 0).length > 1} topSeason={topSeason} topSeasonUnavailable={topSeasonUnavailable} initialReview={(data as unknown as { review: string | null }).review} topEpisodes={topEpisodes} favouriteEpisode={favouriteEpisode} highlightsUnavailable={highlightsUnavailable} key={entry.id} username={profile.username} initialEntry={entry} overview={overview} genres={genres} runtime={runtime} catalogueUnavailable={catalogueUnavailable} backHref={`/library${back.size ? `?${back}` : ""}`} />;
 }

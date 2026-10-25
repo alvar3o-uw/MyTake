@@ -13,3 +13,9 @@
 .items button { color: #f2b3a0; }
 .items > a:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 @media(max-width: 560px) { .avatar { width: 33px; height: 33px; } }
+
+@keyframes menuIn { from { opacity: 0; transform: translateY(-5px) scale(.98); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: no-preference) {
+  .menu summary > svg { transition: transform var(--motion-normal) var(--motion-ease); }
+  .menu[open] .panel { transform-origin: top right; animation: menuIn 180ms var(--motion-ease); }
+}

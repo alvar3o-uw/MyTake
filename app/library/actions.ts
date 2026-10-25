@@ -61,6 +61,7 @@ export async function saveLibraryEntry(input: SaveLibraryInput): Promise<SaveLib
     const saved = await supabase.from("library_entries").select(librarySelection).eq("user_id", user.id).eq("id", input.requestId).single();
     if (saved.error || !saved.data) return { error: "The save may have completed, but confirmation failed. Try again or refresh your library to check." };
     revalidatePath("/library");
+    revalidatePath("/profile");
     revalidatePath("/media/[type]/[id]", "page");
     return { entry: toLibraryEntry(saved.data as unknown as LibraryRecord) };
   } catch {
@@ -85,6 +86,7 @@ export async function removeLibraryEntry(entryId: string, confirmed: boolean): P
     }
     // An already-removed entry is also a successful retry, without exposing other owners.
     revalidatePath("/library");
+    revalidatePath("/profile");
     revalidatePath("/media/[type]/[id]", "page");
     return { removedId: entryId };
   } catch {
@@ -132,9 +134,28 @@ export async function updateLibraryEntry(entryId: string, changes: Pick<SaveLibr
     const saved = await supabase.from("library_entries").select(librarySelection).eq("id", entryId).eq("user_id", user.id).single();
     if (saved.error || !saved.data) return { error: "Your changes may have saved, but confirmation failed. Try again or refresh your library to check." };
     revalidatePath("/library");
+    revalidatePath("/profile");
     revalidatePath("/media/[type]/[id]", "page");
     return { entry: toLibraryEntry(saved.data as unknown as LibraryRecord) };
   } catch {
     return { error: "Couldn’t confirm your changes. Your edits are still here; try again or refresh your library to check." };
   }
+}
+
+export async function setTitleFavourite(entryId: string, favourite: boolean): Promise<SaveLibraryResult> {
+  if (typeof entryId !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(entryId) || typeof favourite !== "boolean") return { error: "Choose a valid library title." };
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) return { error: "Sign in again before updating your favourites." };
+    const updated = await supabase.from("library_entries").update({ is_favourite: favourite }).eq("id", entryId).eq("user_id", user.id).select("id").maybeSingle();
+    if (updated.error) return { error: "Couldn’t update your favourites. Please try again." };
+    if (!updated.data) return { error: "This title is no longer in your library. Refresh to check." };
+    const check = await supabase.from("library_entries").select(librarySelection).eq("id", entryId).eq("user_id", user.id).single();
+    if (check.error || !check.data || check.data.is_favourite !== favourite) return { error: "Couldn’t confirm your favourite. Try again or refresh to check." };
+    revalidatePath("/library");
+    revalidatePath("/profile");
+    revalidatePath("/media/[type]/[id]", "page");
+    return { entry: toLibraryEntry(check.data as unknown as LibraryRecord) };
+  } catch { return { error: "Couldn’t confirm your favourite. Try again or refresh to check." }; }
 }

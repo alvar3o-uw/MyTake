@@ -36,6 +36,7 @@ export default function AccountMenu({ username }: { username: string }) {
     <div className={styles.panel}>
       <div className={styles.identity}><span>Your Account</span><strong>@{username}</strong></div>
       <div className={styles.items}>
+        <Link href="/profile" onClick={() => { if (menuRef.current) menuRef.current.open = false; }}><UiIcon name="profile" />Profile</Link>
         <Link href="/settings"><UiIcon name="settings" />Settings</Link>
         <SignOutButton />
       </div>
