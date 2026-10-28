@@ -90,7 +90,9 @@ export async function saveSeasonRating(entryId: string, season: number, rating: 
       const response = await fetch(`https://api.themoviedb.org/3/tv/${showId}?language=en-US`, { headers: { Authorization: `Bearer ${token}`, Accept: "application/json" }, cache: "no-store", signal: AbortSignal.timeout(8000) });
       if (!response.ok) return { error: "Couldn’t verify this season. Please try again." };
       const details = await response.json();
-      if (!normalizeSeasons(details.seasons).some(item => item.number === season)) return { error: "That season doesn’t match this show. Reload the season list." };
+      const seasons = normalizeSeasons(details.seasons);
+      if (seasons.filter(item => item.number > 0).length <= 1) return { error: "Season ratings are only available for shows with more than one season." };
+      if (!seasons.some(item => item.number === season)) return { error: "That season doesn’t match this show. Reload the season list." };
     }
     const saved = await supabase.rpc("save_season_rating", { p_entry_id: entryId, p_season_number: season, p_rating: rating });
     if (saved.error) return { error: "Couldn’t confirm your rating. Your draft is still here; try again or refresh." };
