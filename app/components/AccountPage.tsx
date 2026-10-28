@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { authenticate, type AuthState } from "../auth/actions";
 import UiIcon from "./UiIcon";
 import Link from "next/link";
@@ -8,6 +8,7 @@ import styles from "./AccountPage.module.css";
 
 export default function AccountPage({ mode, confirmationFailed = false, passwordUpdated = false }: { mode: "sign-in" | "sign-up"; confirmationFailed?: boolean; passwordUpdated?: boolean }) {
   const [state, action, pending] = useActionState<AuthState, FormData>(authenticate.bind(null, mode), {});
+  const [email, setEmail] = useState("");
   const signingUp = mode === "sign-up";
 
   return (
@@ -20,7 +21,7 @@ export default function AccountPage({ mode, confirmationFailed = false, password
         <form action={action} className={styles.fields}>
           <div className={styles.field}>
             <label htmlFor="email">Email</label>
-            <input id="email" name="email" type="email" required autoComplete="email" placeholder="you@example.com" />
+            <input id="email" name="email" type="email" required autoComplete="email" placeholder="you@example.com" value={email} onChange={(event) => setEmail(event.target.value)} />
           </div>
           <div className={styles.field}>
             <label htmlFor="password">Password</label>
