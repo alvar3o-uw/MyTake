@@ -1,0 +1,8 @@
+.dialog { margin: auto; width: min(430px, calc(100vw - 32px)); padding: 28px; border: 1px solid var(--border); border-radius: 24px; background: var(--surface); color: var(--text); box-shadow: 0 24px 80px #0008; }
+.dialog::backdrop { background: #0009; backdrop-filter: blur(4px); }
+.dialog h2 { font-size: 23px; font-weight: 900; margin-bottom: 12px; }
+.dialog p { color: var(--muted); font-size: 14px; line-height: 1.7; }
+.dialog > div { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin-top: 24px; }
+.dialog button { padding: 11px 16px; border: 1px solid var(--border); border-radius: 999px; background: transparent; color: inherit; cursor: pointer; font-weight: 850; }
+.dialog .leave { background: var(--accent); color: #181a1b; border-color: var(--accent); }
+.dialog button:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }

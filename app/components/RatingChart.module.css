@@ -1,0 +1,33 @@
+.chart { margin-top: 24px; padding: 22px 16px; border: 1px solid var(--border); background: var(--surface); border-radius: 20px; min-width: 0; }
+.chart h2 { font-size: 18px; font-weight: 900; margin-bottom: 14px; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 14px; list-style: none; margin-bottom: 16px; font-size: 10px; color: var(--muted); }
+.legend li { display: flex; align-items: center; gap: 5px; }
+.legend span { width: 9px; height: 9px; border-radius: 50%; }
+.scroll { overflow: auto; max-height: 650px; border-radius: 8px; }
+.chart table { border-spacing: 4px; width: max-content; min-width: 100%; font-size: 12px; }
+.chart th { font-weight: 800; color: var(--muted); padding: 5px; text-align: center; }
+.chart thead th { position: sticky; top: 0; z-index: 2; background: var(--surface); }
+.chart tbody th { position: sticky; left: 0; background: var(--surface); }
+.cell, .seasonScore { display: block; min-width: 46px; padding: 9px 7px; border-radius: 6px; background: #ffffff08; color: var(--muted); text-align: center; font-variant-numeric: tabular-nums; }
+.seasonScore { margin-top: 8px; border: 1px solid #ffffff20; font-weight: 950; }
+.chart [data-band="0"] { background: #146943; color: #fff; }
+.chart [data-band="1"] { background: #28ad70; color: #09291c; }
+.chart [data-band="2"] { background: #edcf50; color: #30270c; }
+.chart [data-band="3"] { background: #efa13c; color: #30200c; }
+.chart [data-band="4"] { background: #dc5954; color: #220b0b; }
+.chart [data-band="5"] { background: #79528f; color: #fff; }
+.chart caption { caption-side: bottom; text-align: left; color: var(--muted); font-size: 11px; padding: 12px 4px 0; }
+.scroll:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.chart a { color: inherit; text-decoration: none; }
+.chart a:hover { color: var(--accent); }
+.cell { position: relative; border: 0; width: 100%; font: inherit; cursor: pointer; }
+.cell:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tooltip { display: none; pointer-events: none; position: fixed; z-index: 100; width: 240px; padding: 6px; border: 1px solid var(--border); border-radius: 14px; background: #181a1b; color: #fff; font-size: 11px; text-align: left; box-shadow: 0 8px 25px #0008; }
+.tooltip img { display: block; width: 100%; height: auto; border-radius: 9px; }
+.tooltip strong, .tooltip small { display: block; padding: 5px 6px; }
+.tooltip small { color: var(--muted); }
+.noStill { display: grid; place-items: center; height: 100px; color: var(--muted); background: var(--surface); border-radius: 9px; }
+.cell, .seasonScore { transition: transform 140ms ease, box-shadow 140ms ease; }
+@media (hover: hover) { .cell:hover, a.seasonScore:hover { transform: scale(1.08); box-shadow: 0 4px 14px #0005; z-index: 6; } }
+@media (prefers-reduced-motion: reduce) { .cell, .seasonScore { transition: none; } }
+@media (hover: hover) { .tooltip { display: block; } }

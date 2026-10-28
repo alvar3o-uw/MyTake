@@ -13,6 +13,8 @@ const paths = {
   back: "M20 12H4 M10 6l-6 6 6 6",
   bookmark: "M6 3h12v18l-6-4-6 4z",
   play: "M8 5l11 7-11 7z",
+  open: "M14 3h7v7 M21 3l-11 11 M10 3H4v17h17v-6",
+  chevronDown: "m6 9 6 6 6-6",
 };
 
 export default function UiIcon({ name, className }: { name: keyof typeof paths; className?: string }) {

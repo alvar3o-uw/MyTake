@@ -5,12 +5,14 @@ import { removeLibraryEntry, setTitleFavourite } from "../library/actions";
 import type { LibraryEntry } from "../types";
 import EditEntryDialog from "./EditEntryDialog";
 import UiIcon from "./UiIcon";
+import { useRouter } from "next/navigation";
 import styles from "./LibraryEntryMenu.module.css";
 
 export default function LibraryEntryMenu({ entry, onRemoved, onUpdated, compact = false }: {
   compact?: boolean; entry: LibraryEntry; onRemoved: (entryId: string) => void; onUpdated: (entry: LibraryEntry) => void;
 }) {
   const { id: entryId, title } = entry;
+  const router = useRouter();
   const [panelPosition, setPanelPosition] = useState<{ left: number; top: number } | undefined>();
   const [favouritePending, setFavouritePending] = useState(false);
   const [favouriteError, setFavouriteError] = useState("");
@@ -92,6 +94,7 @@ export default function LibraryEntryMenu({ entry, onRemoved, onUpdated, compact 
           } catch { setFavouriteError("Couldn’t confirm your favourite. Try again or refresh."); if (menu.current) menu.current.open = true; }
           finally { pendingRef.current = false; setFavouritePending(false); }
         }}><UiIcon name="star" className={entry.isFavourite ? styles.filledStar : undefined} />{favouritePending ? "Updating…" : entry.isFavourite ? "Remove from Favourites" : "Add to Favourites"}</button>
+        <button type="button" className={styles.edit} onClick={() => router.push(`/media/${entry.mediaType}/${entry.tmdbId}${location.pathname === "/library" ? location.search : ""}`)}><UiIcon name="open" />Open</button>
         {favouriteError && <p className={styles.menuError} role="alert">{favouriteError}</p>}
         <button type="button" className={styles.edit} disabled={favouritePending || pending} aria-haspopup="dialog" onClick={() => { if (menu.current) menu.current.open = false; setEditing(true); }}><UiIcon name="edit" />Edit Entry</button>
         <button type="button" disabled={favouritePending || pending} aria-haspopup="dialog" onClick={() => { if (menu.current) menu.current.open = false; setError(""); dialog.current?.showModal(); }}><UiIcon name="trash" />Remove from Library</button>

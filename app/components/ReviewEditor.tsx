@@ -4,11 +4,14 @@ import { useId, useRef, useState } from "react";
 import { REVIEW_LIMIT } from "@/lib/reviews/input";
 import type { ReviewResult } from "@/app/reviews/actions";
 import styles from "./ReviewEditor.module.css";
+import useUnsavedChanges from "./useUnsavedChanges";
+import UnsavedChangesDialog from "./UnsavedChangesDialog";
 
-export default function ReviewEditor({ initialReview, label, onSave, initialDraft, onDraftChange, onSaved, onPendingChange, disabled = false }: {
+export default function ReviewEditor({ initialReview, label, onSave, initialDraft, onDraftChange, onSaved, onPendingChange, disabled = false, protectNavigation = false }: {
   initialReview: string | null; label: string; onSave: (draft: string) => Promise<ReviewResult>;
   initialDraft?: string; onDraftChange?: (draft: string) => void;
   onSaved?: (review: string | null) => void; onPendingChange?: (pending: boolean) => void; disabled?: boolean;
+  protectNavigation?: boolean;
 }) {
   const [saved, setSaved] = useState(initialReview);
   const [draft, setDraft] = useState(initialDraft ?? initialReview ?? "");
@@ -20,8 +23,10 @@ export default function ReviewEditor({ initialReview, label, onSave, initialDraf
   const editRef = useRef<HTMLButtonElement>(null);
   const id = useId();
   const dirty = draft !== (saved ?? "");
+  const unsavedWarning = useUnsavedChanges(protectNavigation && dirty);
   function change(value: string) { setDraft(value); onDraftChange?.(value); setError(""); }
   return <section className={styles.review} aria-label={label}>
+    {unsavedWarning.show && <UnsavedChangesDialog onStay={unsavedWarning.onStay} onLeave={unsavedWarning.onLeave} />}
     {editing ? <form onSubmit={async event => {
       event.preventDefault();
       if (pendingRef.current || disabled) return;

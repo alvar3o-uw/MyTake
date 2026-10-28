@@ -22,6 +22,12 @@
 .status { font-weight: 800; font-size: 14px; }
 .episode { color: var(--muted); font-size: 13px; margin-top: 6px; }
 .synopsis { margin-top: 32px; }
+.synopsis summary { display: flex; align-items: center; gap: 8px; padding: 12px 0; font-size: 18px; font-weight: 900; cursor: pointer; list-style: none; }
+.synopsis summary::-webkit-details-marker { display: none; }
+.synopsis summary svg { width: 20px; height: 20px; flex-shrink: 0; color: var(--accent); stroke-width: 2.5; transition: transform 160ms ease; }
+.synopsis[open] summary svg { transform: rotate(180deg); }
+.synopsis summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 6px; }
+@media (prefers-reduced-motion: reduce) { .synopsis summary svg { transition: none; } }
 .synopsis p { color: var(--muted); line-height: 1.8; font-size: 15px; margin-top: 12px; white-space: pre-line; }
 .synopsis button { margin-top: 12px; }
 .main a:focus-visible, .main button:focus-visible { outline: 2px solid var(--accent); outline-offset: 5px; }

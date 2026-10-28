@@ -6,7 +6,7 @@ import Image from "next/image";
 import { posterUrl } from "@/lib/tmdb/media";
 import ProfileNotice from "../components/ProfileNotice";
 import UiIcon from "../components/UiIcon";
-import { useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { sortLibrary, type LibraryOrder } from "@/lib/sort-library";
 import LibraryEntryMenu from "../components/LibraryEntryMenu";
 import CollectionHeader from "../components/CollectionHeader";
@@ -29,6 +29,22 @@ export default function Library({ username, initialEntries, profileUpdated = fal
   const headingRef = useRef<HTMLHeadingElement>(null);
   const filteredEntries = entries.filter((entry) => mediaFilter === "all" || entry.mediaType === mediaFilter);
   const sortedEntries = sortLibrary(filteredEntries, order);
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("filter", mediaFilter);
+    url.searchParams.set("order", order);
+    window.history.replaceState(window.history.state, "", url);
+  }, [mediaFilter, order]);
+  useLayoutEffect(() => {
+    const key = `mytake-library-scroll:${username}:${initialFilter}:${initialOrder}`;
+    try { window.scrollTo({ top: Number(sessionStorage.getItem(key)) || 0, behavior: "instant" }); } catch { /* Storage can be disabled. */ }
+  }, [username, initialFilter, initialOrder]);
+  useEffect(() => {
+    const key = `mytake-library-scroll:${username}:${mediaFilter}:${order}`;
+    function saveScroll() { try { sessionStorage.setItem(key, String(window.scrollY)); } catch { /* Storage can be disabled. */ } }
+    window.addEventListener("scroll", saveScroll, { passive: true });
+    return () => window.removeEventListener("scroll", saveScroll);
+  }, [username, mediaFilter, order]);
 
   function addEntry(entry: LibraryEntry) {
     setEntries((previousEntries) => [entry, ...previousEntries.filter((previous) => previous.id !== entry.id)]);

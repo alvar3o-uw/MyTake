@@ -10,6 +10,8 @@ import CollectionHeader from "@/app/components/CollectionHeader";
 import archive from "@/app/library/page.module.css";
 import { saveEpisodeRating, setFavouriteEpisode } from "./actions";
 import SeasonRating from "./SeasonRating";
+import useUnsavedChanges from "@/app/components/useUnsavedChanges";
+import UnsavedChangesDialog from "@/app/components/UnsavedChangesDialog";
 import styles from "./page.module.css";
 
 type Items<T> = { items: T[]; loading?: boolean; error?: string };
@@ -32,6 +34,7 @@ export default function Episodes({ username, entryId, showId, title, initialRati
   const [messages, setMessages] = useState<Record<string, { text: string; error?: boolean }>>({});
   const [pending, setPending] = useState<number | null>(null);
   const pendingRef = useRef(false);
+  const unsavedWarning = useUnsavedChanges(Object.entries(drafts).some(([id, draft]) => draft !== (ratings[id] === undefined ? "" : String(ratings[id]))) || Object.entries(seasonDrafts).some(([number, draft]) => draft !== (seasonRatings[number] === undefined ? "" : String(seasonRatings[number]))) || Object.entries(reviewDrafts).some(([id, draft]) => draft !== (reviews[id] ?? "")));
   useEffect(() => {
     const controller = new AbortController();
     void (async () => {
@@ -66,7 +69,8 @@ export default function Episodes({ username, entryId, showId, title, initialRati
     if (locationHandled.current || requestedSeason === null || season !== String(requestedSeason) || episodes.loading || episodes.error) return;
     const target = document.getElementById(requestedEpisode === null ? "season-rating" : `episode-${requestedEpisode}`);
     if (!target) return;
-    target.focus({ preventScroll: true });
+    const input = requestedEpisode === null ? target.querySelector<HTMLInputElement>("input") : target.querySelector<HTMLInputElement>('input[type="number"]');
+    (input ?? target).focus({ preventScroll: true });
     target.scrollIntoView({ block: requestedEpisode === null ? "start" : "center" });
     locationHandled.current = true;
   }, [season, episodes.items, episodes.loading, episodes.error, requestedSeason, requestedEpisode]);
@@ -98,6 +102,7 @@ export default function Episodes({ username, entryId, showId, title, initialRati
     finally { pendingRef.current = false; setPending(null); }
   }
   return <div className={archive.archive}>
+    {unsavedWarning.show && <UnsavedChangesDialog onStay={unsavedWarning.onStay} onLeave={unsavedWarning.onLeave} />}
     <CollectionHeader username={username} active="library" />
     <main className={styles.main}>
       <Link className={styles.back} href={backHref}>← {title}</Link>

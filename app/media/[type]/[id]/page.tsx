@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { getOwnProfile } from "@/lib/profiles/server";
 import { librarySelection, toLibraryEntry, type LibraryRecord } from "@/lib/library/records";
 import { normalizeEpisodeDetails, normalizeSeasons } from "@/lib/tmdb/episodes";
-import type { SeasonHighlight } from "@/lib/episodes/season-rating";
+import type { RatingPoint, EpisodeScore } from "@/app/components/RatingChart";
 import type { EpisodeHighlight } from "@/lib/episodes/highlights";
 import MediaDetails from "./MediaDetails";
 
@@ -24,6 +24,7 @@ export default async function MediaPage({ params, searchParams }: {
   let runtime: number | null = null;
   let catalogueUnavailable = false;
   let seasonNames = new Map<number, string>();
+  const episodeCounts = new Map<number, number>();
   try {
     const token = process.env.TMDB_READ_ACCESS_TOKEN;
     if (!token) throw new Error("Catalogue unavailable");
@@ -35,11 +36,14 @@ export default async function MediaPage({ params, searchParams }: {
     const details = await response.json();
     if (details.id !== Number(id)) throw new Error("Unexpected catalogue result");
     if (type === "tv") seasonNames = new Map(normalizeSeasons(details.seasons).map(season => [season.number, season.name]));
+    if (type === "tv" && Array.isArray(details.seasons)) for (const season of details.seasons) {
+      if (season && Number.isSafeInteger(season.season_number) && Number.isSafeInteger(season.episode_count)) episodeCounts.set(season.season_number, season.episode_count);
+    }
     overview = typeof details.overview === "string" ? details.overview.trim() : "";
     genres = Array.isArray(details.genres) ? details.genres.flatMap((genre: { name?: unknown } | null) => genre && typeof genre.name === "string" ? [genre.name] : []) : [];
     runtime = type === "movie" && Number.isInteger(details.runtime) && details.runtime > 0 ? details.runtime : null;
   } catch { catalogueUnavailable = true; }
-  let topSeason: SeasonHighlight | null = null;
+  let seasonScores: RatingPoint[] = [];
   let topSeasonUnavailable = false;
   let topEpisodes: EpisodeHighlight[] = [];
   let favouriteEpisode: EpisodeHighlight | null = null;
@@ -48,10 +52,18 @@ export default async function MediaPage({ params, searchParams }: {
     const [top, favourite, season] = await Promise.all([
       supabase.from("episode_ratings").select("episode_id,season_number,episode_number,rating").eq("entry_id", entry.id).order("rating", { ascending: false }).order("season_number").order("episode_number").limit(3),
       supabase.from("episode_favourites").select("episode_id,season_number,episode_number").eq("entry_id", entry.id).maybeSingle(),
-      supabase.from("season_ratings").select("season_number,rating").eq("entry_id", entry.id).order("rating", { ascending: false }).order("season_number").limit(1).maybeSingle(),
+      supabase.from("season_ratings").select("season_number,rating").eq("entry_id", entry.id).order("season_number"),
     ]);
     topSeasonUnavailable = Boolean(season.error);
-    if (season.data) topSeason = { number: season.data.season_number, name: seasonNames.get(season.data.season_number) ?? (season.data.season_number === 0 ? "Specials" : `Season ${season.data.season_number}`), rating: Number(season.data.rating) };
+    const scores = new Map((season.data ?? []).map(row => [row.season_number, Number(row.rating)]));
+    const episodeScores: EpisodeScore[] = [];
+    for (let offset = 0; ; offset += 1000) {
+      const batch = await supabase.from("episode_ratings").select("season_number,episode_number,rating").eq("entry_id", entry.id).order("season_number").order("episode_number").range(offset, offset + 999);
+      if (batch.error) { topSeasonUnavailable = true; break; }
+      episodeScores.push(...batch.data.map(row => ({ season: row.season_number, episode: row.episode_number, rating: Number(row.rating) })));
+      if (batch.data.length < 1000) break;
+    }
+    seasonScores = [...new Set([...seasonNames.keys(), ...scores.keys(), ...episodeScores.map(item => item.season)])].sort((a, b) => a - b).map(number => ({ number, episodeCount: episodeCounts.get(number) ?? 0, episodes: episodeScores.filter(item => item.season === number), label: number === 0 ? "SP" : `S${number}`, name: seasonNames.get(number) ?? (number === 0 ? "Specials" : `Season ${number}`), rating: scores.get(number) ?? null }));
     highlightsUnavailable = Boolean(top.error || favourite.error);
     if (!highlightsUnavailable) {
       const rows = [...(top.data ?? []), ...(favourite.data ? [favourite.data] : [])];
@@ -83,5 +95,5 @@ export default async function MediaPage({ params, searchParams }: {
   const back = new URLSearchParams();
   if (query.filter === "movie" || query.filter === "tv") back.set("filter", query.filter);
   if (["ascending", "alphabetical", "alphabetical-reverse"].includes(query.order ?? "")) back.set("order", query.order!);
-  return <MediaDetails showTopSeason={[...seasonNames.keys()].filter(number => number > 0).length > 1} topSeason={topSeason} topSeasonUnavailable={topSeasonUnavailable} initialReview={(data as unknown as { review: string | null }).review} topEpisodes={topEpisodes} favouriteEpisode={favouriteEpisode} highlightsUnavailable={highlightsUnavailable} key={entry.id} username={profile.username} initialEntry={entry} overview={overview} genres={genres} runtime={runtime} catalogueUnavailable={catalogueUnavailable} backHref={`/library${back.size ? `?${back}` : ""}`} />;
+  return <MediaDetails seasonScores={seasonScores} topSeasonUnavailable={topSeasonUnavailable} initialReview={(data as unknown as { review: string | null }).review} topEpisodes={topEpisodes} favouriteEpisode={favouriteEpisode} highlightsUnavailable={highlightsUnavailable} key={entry.id} username={profile.username} initialEntry={entry} overview={overview} genres={genres} runtime={runtime} catalogueUnavailable={catalogueUnavailable} backHref={`/library${back.size ? `?${back}` : ""}`} />;
 }
