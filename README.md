@@ -38,7 +38,7 @@ The website is being built with TypeScript, React, Next.js, and CSS Modules. Sup
 | CSS Modules | Component styles, alongside shared global CSS | In use |
 | ESLint | Automated code checks | In use |
 | Git and GitHub | Version control and project history | In use |
-| OpenAI Codex | Development assistance within a structured learning workflow | In use |
+| Claude (Anthropic) and Codex (OpenAI) | AI collaborators in Jarvis, my personal development workflow | In use |
 | PostgreSQL through Supabase | Private profiles, media snapshots, library ratings, and episode progress | In use |
 | Supabase Edge Functions | Protected account deletion using the Auth admin API | In use |
 | Supabase Auth | Email/password accounts, cookie sessions, and protected library access | Connected |
@@ -47,13 +47,13 @@ The website is being built with TypeScript, React, Next.js, and CSS Modules. Sup
 
 A good-looking, comfortable interface matters to me alongside the functionality. I want MyTake to feel like a place I enjoy returning to, rather than just a form for entering scores.
 
-## How I'm learning with Codex
+## How I'm building with Jarvis
 
-I'm using Codex as a teacher and development assistant, guided by a set of project instructions and continuity notes I developed around how I want to learn. The aim is to build software I understand, rather than simply receive a finished application.
+I build MyTake with Jarvis, a personal system I set up for my software projects and career learning. Jarvis is a set of private instructions and notes shared by two AI collaborators: Claude (Anthropic) and Codex (OpenAI). It replaces the Codex-only workflow I started this project with. The aim hasn't changed: build software I understand, rather than simply receive a finished application.
 
-For new concepts and meaningful features, the workflow is to explain the purpose, trace how information moves through the system, compare tradeoffs, and work through one small piece at a time. It leaves room for me to write code, explain a choice, or investigate a problem, with feedback on my attempt. For bounded tasks such as styling changes or routine edits, Codex can implement the changes and explain what changed and how it was checked.
+The two models have separate roles and check each other's work. Claude plans, builds the interface, reviews and keeps the records; Codex builds the rest and challenges Claude's plans. Each feature is planned and debated before any code is written, built on its own branch with tests written first for logic and data rules, then reviewed by the model that didn't write it, including a security check. Small fixes are done directly, but anything touching sign-in, access rules or server code still gets a security check from the other model.
 
-I own the goals and consequential design decisions. Codex is expected to challenge weak assumptions, distinguish recommendations from agreed choices, and record decisions, checks, and learning checkpoints so later sessions can pick up where we left off. I review changes before committing and publishing them. AI assistance is part of the process; generated code by itself isn't evidence that I've learned the underlying concept.
+I own the goals and consequential design decisions. Both models are expected to challenge weak assumptions, including mine, and to record decisions, checks and what's still unverified so later sessions can pick up where we left off. Nothing is pushed or published without my OK. AI assistance is part of the process; generated code by itself isn't evidence that I've learned the underlying concept.
 
 ## Beyond the MVP
 
