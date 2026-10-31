@@ -1,6 +1,8 @@
 -- Run as postgres, the role that applies MyTake's schema files.
--- Fails if anything in public is granted to anon, or if new tables, sequences
--- and functions would grant anything to anon or authenticated by default.
+-- Fails if anon has any table, column, sequence or function privilege in public,
+-- or CREATE on the schema (schema and type USAGE are not checked), or if tables,
+-- sequences and functions created here as postgres grant anything to anon or
+-- authenticated by default.
 begin;
 
 -- Existing objects: nothing in public is open to anon.
