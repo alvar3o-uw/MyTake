@@ -39,10 +39,18 @@ begin
     raise exception 'Owner reassignment allowed';
   exception when insufficient_privilege then null; end;
 end $$;
+do $$
+declare changed text;
+begin
+  update public.profiles set username='c_' || substr(replace(current_setting('mytake.test_b'),'-',''),1,12)
+    where id=current_setting('mytake.test_b')::uuid returning username into changed;
+  if changed is null then raise exception 'Owner username change failed'; end if;
+end $$;
 reset role;
 do $$
 begin
  if has_table_privilege('anon','public.profiles','select') then raise exception 'Anonymous read permission granted'; end if;
+ if has_column_privilege('authenticated','public.profiles','id','update') then raise exception 'Profile id update permission granted'; end if;
 end $$;
-select 'Passed: owner access, cross-account isolation, unique usernames, username format, insert ownership, update ownership, anonymous denial. Fixtures rolled back.' as result;
+select 'Passed: owner access, cross-account isolation, unique usernames, username format, insert ownership, update ownership, owner username change, id not updatable, anonymous denial. Fixtures rolled back.' as result;
 rollback;
