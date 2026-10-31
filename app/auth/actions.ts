@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { isValidEmail } from "@/lib/auth/email";
 import { getAuthSiteUrl } from "@/lib/auth/site-url";
 import { createClient } from "@/lib/supabase/server";
 
@@ -9,7 +10,7 @@ export type AuthState = { error?: string; message?: string };
 export async function authenticate(mode: "sign-in" | "sign-up", _previous: AuthState, form: FormData): Promise<AuthState> {
   const email = String(form.get("email") ?? "").trim();
   const password = String(form.get("password") ?? "");
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: "Enter a valid email address." };
+  if (!isValidEmail(email)) return { error: "Enter a valid email address." };
   if (!password) return { error: "Enter your password." };
   if (mode === "sign-up") {
     if (password !== String(form.get("confirmPassword") ?? "")) return { error: "Your passwords don’t match." };
