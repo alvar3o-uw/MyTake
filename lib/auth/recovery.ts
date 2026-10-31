@@ -2,6 +2,21 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 
 type RecoveryAuth = Pick<SupabaseClient["auth"], "getUser" | "updateUser" | "signOut">;
+type ResetAuth = Pick<SupabaseClient["auth"], "resetPasswordForEmail">;
+export type ResetRequestResult = { message: string; error?: never } | { error: string; message?: never };
+
+const RESET_UNREACHABLE = "Couldn’t reach the sign-in service. Please try again.";
+
+export async function sendPasswordResetEmail(auth: ResetAuth, email: string, redirectTo: string): Promise<ResetRequestResult> {
+  try {
+    const { error } = await auth.resetPasswordForEmail(email, { redirectTo });
+    // Status 0 means the request never reached Supabase.
+    if (error?.name === "AuthRetryableFetchError" && error.status === 0) return { error: RESET_UNREACHABLE };
+  } catch { return { error: RESET_UNREACHABLE }; }
+  // Every Supabase reply, rate limits included, gets the same message, so the
+  // form never reveals whether an account exists for the address.
+  return { message: "If an account exists for that address, you’ll receive a password reset link." };
+}
 export type PasswordChangeResult = { updated: true; signedOut: boolean; error?: never } | { error: string; updated?: never; signedOut?: never };
 
 export async function changeRecoveredPassword(auth: RecoveryAuth, password: unknown, confirmation: unknown): Promise<PasswordChangeResult> {

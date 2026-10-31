@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { resolveAuthOrigin, authCallbackDestination } from '../lib/auth/urls.ts';
-import { changeRecoveredPassword } from '../lib/auth/recovery.ts';
+import { changeRecoveredPassword, sendPasswordResetEmail } from '../lib/auth/recovery.ts';
 
 test('production origins require explicit HTTPS and never trust arbitrary request origins', () => {
   assert.equal(resolveAuthOrigin('https://mytake.example/', 'https://mytake.example', false, true), 'https://mytake.example');
@@ -46,4 +46,22 @@ test('provider rejection and partial sign-out failure are reported accurately', 
   assert.deepEqual(rejected.calls, ['getUser']);
   const partial = gateway({ signOut: async () => ({ error: new Error('unavailable') }) });
   assert.deepEqual(await changeRecoveredPassword(partial.auth, 'fake-new-password', 'fake-new-password'), { updated: true, signedOut: false });
+});
+const NEUTRAL = 'If an account exists for that address, you’ll receive a password reset link.';
+function resetGateway(reply) {
+  const calls = [];
+  return { calls, auth: { resetPasswordForEmail: async (email, options) => { calls.push([email, options]); if (reply instanceof Error) throw reply; return reply; } } };
+}
+test('every reset-email reply from Supabase, including rate limits, gives the same neutral message', async () => {
+  for (const error of [null, { code: 'over_email_send_rate_limit', status: 429 }, { status: 429 }, { code: 'user_not_found', status: 400 }, { status: 500 }, { name: 'AuthRetryableFetchError', status: 503 }]) {
+    const client = resetGateway({ data: {}, error });
+    assert.deepEqual(await sendPasswordResetEmail(client.auth, 'someone@example.com', 'https://mytake.example/auth/callback?next=/reset-password'), { message: NEUTRAL }, JSON.stringify(error));
+    assert.deepEqual(client.calls, [['someone@example.com', { redirectTo: 'https://mytake.example/auth/callback?next=/reset-password' }]]);
+  }
+});
+test('a network failure reaching Supabase is reported as a connection problem', async () => {
+  for (const reply of [new Error('fetch failed'), { data: null, error: { name: 'AuthRetryableFetchError', status: 0, message: 'fetch failed' } }]) {
+    const client = resetGateway(reply);
+    assert.deepEqual(await sendPasswordResetEmail(client.auth, 'someone@example.com', 'https://mytake.example/x'), { error: 'Couldn’t reach the sign-in service. Please try again.' });
+  }
 });
