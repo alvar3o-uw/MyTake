@@ -45,6 +45,8 @@ begin
  if ok is distinct from true then raise exception '%', label; end if;
 end;
 $$;
+-- New functions grant nothing by default (supabase/default-privileges.sql).
+grant execute on function pg_temp.cap_state(), pg_temp.cap_reject(text,text,text,text), pg_temp.cap_assert(boolean,text) to authenticated;
 
 -- 1: 500 library + 499 watchlist; the next watchlist title is the 1,000th.
 select set_config('request.jwt.claims', '{}', true);
