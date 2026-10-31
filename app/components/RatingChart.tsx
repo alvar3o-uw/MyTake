@@ -6,6 +6,7 @@ import Image from "next/image";
 import { navigateWithUnsavedCheck } from "./useUnsavedChanges";
 import { useRouter } from "next/navigation";
 import type { EpisodeDetails } from "@/lib/tmdb/episodes";
+import { chartEpisodeRows } from "@/lib/episodes/chart-rows";
 import styles from "./RatingChart.module.css";
 export type RatingPoint = { label: string; name: string; rating: number | null; number: number; episodeCount: number; episodes?: EpisodeScore[] };
 export type EpisodeScore = { season: number; episode: number; rating: number };
@@ -40,7 +41,7 @@ export default function RatingChart({ points: allPoints, showId, query = "" }: {
   const episodes = points.flatMap(point => point.episodes ?? []);
   if (!points.some(point => point.rating !== null) && !episodes.length) return null;
   const scores = new Map(episodes.map(item => [`${item.season}:${item.episode}`, item.rating]));
-  const count = Math.max(0, ...points.map(point => point.episodeCount), ...episodes.map(item => item.episode));
+  const rows = chartEpisodeRows(points.map(point => point.episodeCount), episodes.map(item => item.episode));
   return <section className={styles.chart} aria-label="Your season and episode ratings">
     <h2>Your Ratings</h2>
     {error && <p role="alert">{error}</p>}
@@ -48,7 +49,7 @@ export default function RatingChart({ points: allPoints, showId, query = "" }: {
     <div className={styles.scroll} tabIndex={0} onScroll={() => setHover(null)} aria-label="Season and episode ratings. Scroll to explore.">
       <table><caption>Your scores out of 10. A dash means unrated; empty cells mean no episode.</caption>
         <thead><tr><th scope="col">Episode</th>{points.map(point => <th scope="col" key={point.number}><span title={point.name}>{point.label}</span>{points.length > 1 ? <Link href={href(point.number)} className={styles.seasonScore} data-band={point.rating === null ? undefined : band(point.rating)} aria-label={`Edit ${point.name} season rating: ${point.rating ?? "unrated"}`}>{point.rating?.toFixed(1) ?? "—"}</Link> : <div className={styles.seasonScore}>{point.rating?.toFixed(1) ?? "—"}</div>}</th>)}</tr></thead>
-        <tbody>{Array.from({ length: count }, (_, index) => index + 1).map(episode => <tr key={episode}><th scope="row">E{episode}</th>{points.map(point => {
+        <tbody>{rows.map(episode => <tr key={episode}><th scope="row">E{episode}</th>{points.map(point => {
           const score = scores.get(`${point.number}:${episode}`);
           return <td key={point.number}>{(episode <= point.episodeCount || score !== undefined) && <button type="button" className={styles.cell} data-band={score === undefined ? undefined : band(score)} aria-label={`Edit ${point.label} episode ${episode} rating, ${score ?? "unrated"}`} onMouseLeave={() => setHover(null)} onMouseEnter={event => {
             const rect = event.currentTarget.getBoundingClientRect();
