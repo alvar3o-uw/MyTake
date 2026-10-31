@@ -1,6 +1,7 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { storageLimitMessage } from "@/lib/storage-limits";
 import { normalizeResults } from "@/lib/tmdb/media";
 import { normalizeEpisodes } from "@/lib/tmdb/episodes";
 import { validateLibraryInput, type SaveLibraryInput } from "@/lib/library/input";
@@ -44,6 +45,8 @@ export async function saveWatchlistEntry(input: Pick<SaveLibraryInput, "requestI
             return { error: "That title is unavailable. Choose another search result." };
         const { error } = await supabase.rpc("save_watchlist_entry", { p_entry_id: input.requestId, p_tmdb_id: media.tmdbId, p_media_type: media.mediaType, p_title: media.title, p_release_year: media.year, p_poster_path: media.posterPath });
         if (error) {
+            const limitMessage = storageLimitMessage(error);
+            if (limitMessage) return { error: limitMessage };
             if (error.code === "23505") {
                 const retry = await supabase.from("watchlist_entries").select(watchlistSelection).eq("id", input.requestId).eq("user_id", user.id).maybeSingle();
                 if (retry.data)
@@ -126,7 +129,7 @@ export async function moveWatchlistEntry(entryId: string, changes: Pick<SaveLibr
         }
         const { error } = await supabase.rpc("move_watchlist_to_library", { p_entry_id: entryId, p_rating: changes.rating, p_viewing_status: changes.status === "Completed" ? "completed" : "in_progress", p_episode_id: progress?.episodeId ?? null, p_season_number: progress?.seasonNumber ?? null, p_episode_number: progress?.episodeNumber ?? null, p_episode_name: progress?.episodeName ?? null });
         if (error)
-            return { error: "Couldn’t confirm the move. Try again or refresh both lists to check." };
+            return { error: storageLimitMessage(error) ?? "Couldn’t confirm the move. Try again or refresh both lists to check." };
         const saved = await supabase.from("library_entries").select(librarySelection).eq("id", entryId).eq("user_id", user.id).single();
         if (saved.error || !saved.data)
             return { error: "The title may have moved. Try again or refresh both lists to check." };

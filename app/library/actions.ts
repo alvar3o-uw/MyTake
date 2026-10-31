@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { storageLimitMessage } from "@/lib/storage-limits";
 import { normalizeResults } from "@/lib/tmdb/media";
 import { normalizeEpisodes } from "@/lib/tmdb/episodes";
 import { validateLibraryInput, type SaveLibraryInput } from "@/lib/library/input";
@@ -50,6 +51,8 @@ export async function saveLibraryEntry(input: SaveLibraryInput): Promise<SaveLib
       p_episode_number: progress?.episodeNumber ?? null, p_episode_name: progress?.episodeName ?? null,
     });
     if (saveError) {
+      const limitMessage = storageLimitMessage(saveError);
+      if (limitMessage) return { error: limitMessage };
       if (saveError.code === "23505") {
         const retry = await supabase.from("library_entries").select(librarySelection).eq("user_id", user.id).eq("id", input.requestId).maybeSingle();
         if (retry.data) return { entry: toLibraryEntry(retry.data as unknown as LibraryRecord) };
@@ -129,7 +132,7 @@ export async function updateLibraryEntry(entryId: string, changes: Pick<SaveLibr
       episode_id: progress?.episodeId ?? null, season_number: progress?.seasonNumber ?? null,
       episode_number: progress?.episodeNumber ?? null, episode_name: progress?.episodeName ?? null,
     }).eq("id", entryId).eq("user_id", user.id).select("id").maybeSingle();
-    if (updated.error) return { error: "Couldn’t save your changes. Your edits are still here; please try again." };
+    if (updated.error) return { error: storageLimitMessage(updated.error) ?? "Couldn’t save your changes. Your edits are still here; please try again." };
     if (!updated.data) return { error: "This entry is no longer available. Refresh your library to check." };
     const saved = await supabase.from("library_entries").select(librarySelection).eq("id", entryId).eq("user_id", user.id).single();
     if (saved.error || !saved.data) return { error: "Your changes may have saved, but confirmation failed. Try again or refresh your library to check." };

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { storageLimitMessage } from "@/lib/storage-limits";
 import { normalizeEpisodes, normalizeSeasons, type EpisodeProgress } from "@/lib/tmdb/episodes";
 import { validateSeasonRating } from "@/lib/episodes/season-rating";
 import { validateLibraryInput } from "@/lib/library/input";
@@ -29,7 +30,7 @@ export async function saveEpisodeRating(entryId: string, episode: EpisodeProgres
       if (!canonical) return { error: "That episode doesn’t match this show. Reload the episode list." };
     }
     const saved = await supabase.rpc("save_episode_rating", { p_entry_id: entryId, p_episode_id: episode.episodeId, p_season_number: episode.seasonNumber, p_episode_number: episode.episodeNumber, p_rating: rating });
-    if (saved.error) return { error: "Couldn’t confirm your save. Try again or refresh to check." };
+    if (saved.error) return { error: storageLimitMessage(saved.error) ?? "Couldn’t confirm your save. Try again or refresh to check." };
     const check = await supabase.from("episode_ratings").select("rating").eq("entry_id", entryId).eq("episode_id", episode.episodeId).maybeSingle();
     if (check.error || (rating === null ? check.data !== null : !check.data || Number(check.data.rating) !== rating)) return { error: "Couldn’t confirm your save. Your draft is still here; try again or refresh." };
     revalidatePath(`/media/tv/${showId}/episodes`);
@@ -95,7 +96,7 @@ export async function saveSeasonRating(entryId: string, season: number, rating: 
       if (!seasons.some(item => item.number === season)) return { error: "That season doesn’t match this show. Reload the season list." };
     }
     const saved = await supabase.rpc("save_season_rating", { p_entry_id: entryId, p_season_number: season, p_rating: rating });
-    if (saved.error) return { error: "Couldn’t confirm your rating. Your draft is still here; try again or refresh." };
+    if (saved.error) return { error: storageLimitMessage(saved.error) ?? "Couldn’t confirm your rating. Your draft is still here; try again or refresh." };
     const check = await supabase.from("season_ratings").select("rating").eq("entry_id", entryId).eq("season_number", season).maybeSingle();
     if (check.error || (check.data ? Number(check.data.rating) : null) !== rating) return { error: "Couldn’t confirm your rating. Try again or refresh to check." };
     revalidatePath(`/media/tv/${showId}`);

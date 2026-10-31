@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { storageLimitMessage } from "@/lib/storage-limits";
 import { normalizeReview } from "@/lib/reviews/input";
 import { validateLibraryInput } from "@/lib/library/input";
 import { normalizeEpisodes, type EpisodeProgress } from "@/lib/tmdb/episodes";
@@ -18,7 +19,7 @@ export async function saveMediaReview(entryId: string, input: unknown): Promise<
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) return { error: "Sign in again before saving your review." };
     const saved = await supabase.from("library_entries").update({ review: parsed.review }).eq("id", entryId).eq("user_id", user.id).select("id").maybeSingle();
-    if (saved.error) return { error: "Couldn’t save your review. Your draft is still here; please try again." };
+    if (saved.error) return { error: storageLimitMessage(saved.error) ?? "Couldn’t save your review. Your draft is still here; please try again." };
     if (!saved.data) return { error: "This title is no longer in your library. Refresh to check." };
     const check = await supabase.from("library_entries").select("review").eq("id", entryId).eq("user_id", user.id).single();
     if (check.error || check.data.review !== parsed.review) return { error: "Couldn’t confirm your review. Try again or refresh to check." };
@@ -55,7 +56,7 @@ export async function saveEpisodeReview(entryId: string, episode: EpisodeProgres
       }
     }
     const saved = await supabase.rpc("save_episode_review", { p_entry_id: entryId, p_episode_id: episode.episodeId, p_season_number: episode.seasonNumber, p_episode_number: episode.episodeNumber, p_review: parsed.review });
-    if (saved.error) return { error: "Couldn’t confirm your review. Your draft is still here; try again or refresh." };
+    if (saved.error) return { error: storageLimitMessage(saved.error) ?? "Couldn’t confirm your review. Your draft is still here; try again or refresh." };
     const check = await supabase.from("episode_reviews").select("review").eq("entry_id", entryId).eq("episode_id", episode.episodeId).maybeSingle();
     if (check.error || (check.data?.review ?? null) !== parsed.review) return { error: "Couldn’t confirm your review. Try again or refresh to check." };
     revalidatePath(`/media/tv/${showId}/episodes`);
