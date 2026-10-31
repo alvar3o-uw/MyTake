@@ -25,7 +25,7 @@ test('episode_reviews limit gives the approved removal message', () => {
 
 test('text limit gives the approved draft-preserving message', () => {
   assert.equal(storageLimitMessage({ code: 'MTLIM', message: 'text' }),
-    'Your saved text has reached MyTake’s 1 MB limit (reviews, titles and episode names together). Shorten or remove a review to save this one. Your draft is still here.');
+    'Your saved text has reached MyTake’s 1 MB limit (reviews, titles and episode names together). Shorten or remove a review, or remove a title, to save more.');
 });
 
 test('unknown limit names and malformed errors give null', () => {
