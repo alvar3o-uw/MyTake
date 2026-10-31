@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createPasswordResetClient } from "@/lib/supabase/server";
 import { getAuthSiteUrl } from "@/lib/auth/site-url";
 import { isValidEmail } from "@/lib/auth/email";
 import { changeRecoveredPassword, sendPasswordResetEmail } from "@/lib/auth/recovery";
@@ -14,8 +14,10 @@ export async function requestPasswordReset(_previous: AuthState, form: FormData)
   try { origin = await getAuthSiteUrl(); }
   catch { return { error: "Password recovery isn’t configured for this address. Please use the main MyTake website." }; }
   try {
-    const supabase = await createClient();
-    return await sendPasswordResetEmail(supabase.auth, email, `${origin}/auth/callback?next=/reset-password`);
+    const { supabase, saveCookies } = await createPasswordResetClient();
+    const result = await sendPasswordResetEmail(supabase.auth, email, `${origin}/auth/callback?next=/reset-password`);
+    saveCookies();
+    return result;
   } catch { return { error: "Couldn’t reach the sign-in service. Please try again." }; }
 }
 
