@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  images: { remotePatterns: [{ protocol: "https", hostname: "image.tmdb.org", pathname: "/t/p/**", search: "" }] },
-};
+// No images.remotePatterns: TMDB images are loaded directly (unoptimized), so
+// Vercel's image resizer stays limited to the site's own files.
+const nextConfig: NextConfig = {};
 
 export default nextConfig;
